@@ -4,7 +4,7 @@ defmodule ExOpenApiUtils.MixProject do
   def project do
     [
       app: :ex_open_api_utils,
-      version: "0.1.0",
+      version: "0.2.0",
       elixir: "~> 1.14",
       description: "Elixir Utilities for open api 3.0",
       start_permanent: Mix.env() == :prod,

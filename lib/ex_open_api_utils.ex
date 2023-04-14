@@ -4,11 +4,16 @@ defmodule ExOpenApiUtils do
   """
   alias ExOpenApiUtils.Property
 
-  defmacro __using__(_opts) do
-    quote do
-      import ExOpenApiUtils, only: [open_api_schema: 1]
-      @behaviour ExOpenApiUtils.Schema
+  defmacro __using__(opts \\ []) do
 
+    dependencies = Keyword.get(opts, :dependencies, [])
+    quote do
+      import ExOpenApiUtils, only: [open_api_schema: 1, create_schema: 1]
+      require ExOpenApiUtils
+      @behaviour ExOpenApiUtils.Schema
+      for dependency <- unquote(dependencies) do
+        create_schema(dependency)
+      end
       Module.register_attribute(__MODULE__, :open_api_property, accumulate: true)
     end
   end
@@ -45,7 +50,8 @@ defmodule ExOpenApiUtils do
 
     example =
       Enum.reduce(properties, %{}, fn %Property{} = property, acc ->
-        Map.put(acc, Atom.to_string(property.key), property.schema.example)
+        example = OpenApiSpex.Schema.example(property.schema)
+        Map.put(acc, Atom.to_string(property.key), example)
       end)
 
     properties =
