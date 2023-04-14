@@ -1,6 +1,6 @@
 # ExOpenApiUtils
 
-**TODO: Add description**
+Utility toolkit to define open api docs from ecto schemas
 
 [![Module Version](https://img.shields.io/hexpm/v/ex_open_api_utils.svg)](https://hex.pm/packages/ex_open_api_utils)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/ex_open_api_utils/)
@@ -16,7 +16,7 @@ by adding `ex_open_api_utils` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_open_api_utils, "~> 0.1.0"}
+    {:ex_open_api_utils, "~> 0.2.0"}
   ]
 end
 ```
