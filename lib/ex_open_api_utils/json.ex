@@ -35,12 +35,7 @@ defimpl ExOpenApiUtils.Json,
     Date,
     Time,
     NaiveDateTime,
-    DateTime,
-    :integer,
-    :binary,
-    :float,
-    :boolean,
-    :binary
+    DateTime
   ] do
   def to_json(val), do: val
 end
