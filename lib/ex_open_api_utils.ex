@@ -133,7 +133,7 @@ defmodule ExOpenApiUtils do
           OpenApiSpex.schema(unquote(Macro.escape(body)))
         end
 
-      Protocol.derive(ExOpenApiUtils.Json, __MODULE__,  property_attrs: property_attrs)
+      Protocol.derive(ExOpenApiUtils.Json, __MODULE__, property_attrs: property_attrs)
 
       Module.create(module_name, contents, Macro.Env.location(__ENV__))
     end
