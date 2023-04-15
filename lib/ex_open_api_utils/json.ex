@@ -1,5 +1,5 @@
 defprotocol ExOpenApiUtils.Json do
-  @spec to_json(Ecto.Schema.t()) :: map()
+  @spec to_json(Ecto.Schema.t()) :: map() | list() | atom()
   def to_json(struct)
 end
 
@@ -51,5 +51,11 @@ end
 defimpl ExOpenApiUtils.Json, for: [List] do
   def to_json(list) do
     Enum.map(list, &ExOpenApiUtils.Json.to_json/1)
+  end
+end
+
+defimpl ExOpenApiUtils.Json, for: Ecto.Association.NotLoaded  do
+  def to_json(_val) do
+    :not_loaded
   end
 end
