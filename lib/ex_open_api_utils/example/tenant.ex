@@ -1,12 +1,10 @@
 defmodule ExOpenApiUtils.Example.Tenant do
-  use ExOpenApiUtils, [dependencies: [ExOpenApiUtils.Example.User]]
+  use ExOpenApiUtils, dependencies: [ExOpenApiUtils.Example.User]
   use Ecto.Schema
   alias ExOpenApiUtils.Property
   alias OpenApiSpex.Schema
   alias ExOpenApiUtils.Example.User
   import Ecto.Changeset
-
-
 
   schema("tenant") do
     @open_api_property %Property{
