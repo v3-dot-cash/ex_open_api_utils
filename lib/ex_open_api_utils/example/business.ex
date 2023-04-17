@@ -5,7 +5,7 @@ defmodule ExOpenApiUtils.Example.Business do
   alias OpenApiSpex.Schema
   alias ExOpenApiUtils.Example.Tenant
 
-  schema("business") do
+  schema("businesses") do
     @open_api_property %Property{
       schema: %Schema{
         type: :string,

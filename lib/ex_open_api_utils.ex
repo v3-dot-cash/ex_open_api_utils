@@ -4,7 +4,7 @@ defmodule ExOpenApiUtils do
   """
   alias ExOpenApiUtils.Property
 
-  defmacro __using__(opts \\ []) do
+  defmacro __using__(_opts) do
     quote do
       import ExOpenApiUtils, only: [open_api_schema: 1]
       require ExOpenApiUtils
@@ -95,6 +95,7 @@ defmodule ExOpenApiUtils do
   defmacro __after_compile__(%{module: module}, _bytecode) do
     quote do
       require Protocol
+      alias OpenApiSpex.Schema
 
       [
         property_attrs: property_attrs,
@@ -115,7 +116,13 @@ defmodule ExOpenApiUtils do
           Map.put(acc, property.key, property.schema)
         end)
 
-      module_name = Module.concat(unquote(module), "OpenApiSchema")
+      schema_module_name = Module.concat(unquote(module), "OpenApiSchema")
+      request_module_name = Module.concat(unquote(module), "Request")
+      responese_module_name = Module.concat(unquote(module), "Response")
+      list_response_module_name = Module.concat(unquote(module), "ListResponse")
+
+      request_key = Inflex.underscore(title) |> String.to_atom()
+      request_key_example = Inflex.underscore(title)
 
       body = %{
         title: title,
@@ -133,9 +140,66 @@ defmodule ExOpenApiUtils do
           OpenApiSpex.schema(unquote(Macro.escape(body)))
         end
 
-      Protocol.derive(ExOpenApiUtils.Json, __MODULE__, property_attrs: property_attrs)
+      Module.create(schema_module_name, contents, Macro.Env.location(__ENV__))
 
-      Module.create(module_name, contents, Macro.Env.location(__ENV__))
+      body = %{
+        title: Inflex.camelize(title <> "Request"),
+        type: :object,
+        description: description <> "Request Body",
+        properties: %{request_key => schema_module_name},
+        example: %{request_key_example => example}
+      }
+
+      contents =
+        quote do
+          require OpenApiSpex
+
+          OpenApiSpex.schema(unquote(Macro.escape(body)))
+        end
+
+      Module.create(request_module_name, contents, Macro.Env.location(__ENV__))
+
+      body = %{
+        title: Inflex.camelize(title <> "Response"),
+        type: :object,
+        description: description <> "Response Body",
+        properties: %{data: schema_module_name},
+        example: %{"data" => example}
+      }
+
+      contents =
+        quote do
+          require OpenApiSpex
+
+          OpenApiSpex.schema(unquote(Macro.escape(body)))
+        end
+
+      Module.create(responese_module_name, contents, Macro.Env.location(__ENV__))
+
+      body = %{
+        title: Inflex.camelize(title <> "ListResponse"),
+        type: :object,
+        description: description <> "List Response Body",
+        properties: %{
+          data: %Schema{
+            type: :array,
+            description: "list of " <> title,
+            items: [schema_module_name]
+          }
+        },
+        example: %{"data" => [example]}
+      }
+
+      contents =
+        quote do
+          require OpenApiSpex
+
+          OpenApiSpex.schema(unquote(Macro.escape(body)))
+        end
+
+      Module.create(responese_module_name, contents, Macro.Env.location(__ENV__))
+
+      Protocol.derive(ExOpenApiUtils.Json, __MODULE__, property_attrs: property_attrs)
     end
   end
 end

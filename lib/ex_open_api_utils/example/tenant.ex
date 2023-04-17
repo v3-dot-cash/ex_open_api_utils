@@ -6,7 +6,7 @@ defmodule ExOpenApiUtils.Example.Tenant do
   alias ExOpenApiUtils.Example.User
   import Ecto.Changeset
 
-  schema("tenant") do
+  schema("tenants") do
     @open_api_property %Property{
       schema: %Schema{
         type: :string,

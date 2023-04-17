@@ -12,6 +12,8 @@ require ExOpenApiUtils
 # IO.inspect(ExOpenApiUtils.Example.Business.OpenApiSchema.schema.properties.name)
 # IO.inspect("-------------")
 IO.inspect(ExOpenApiUtils.Example.Business.OpenApiSchema.schema)
+IO.inspect(ExOpenApiUtils.Example.Business.Request.schema)
+
 
 IO.inspect(
   ExOpenApiUtils.Json.to_json(%{

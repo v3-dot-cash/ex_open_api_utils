@@ -54,7 +54,7 @@ defimpl ExOpenApiUtils.Json, for: [List] do
   end
 end
 
-defimpl ExOpenApiUtils.Json, for: Ecto.Association.NotLoaded  do
+defimpl ExOpenApiUtils.Json, for: Ecto.Association.NotLoaded do
   def to_json(_val) do
     :not_loaded
   end

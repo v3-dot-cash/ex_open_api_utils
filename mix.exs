@@ -4,7 +4,7 @@ defmodule ExOpenApiUtils.MixProject do
   def project do
     [
       app: :ex_open_api_utils,
-      version: "0.3.1",
+      version: "0.3.2",
       elixir: "~> 1.14",
       description: "Elixir Utilities for open api 3.0",
       start_permanent: Mix.env() == :prod,
@@ -28,7 +28,8 @@ defmodule ExOpenApiUtils.MixProject do
     [
       {:ex_doc, "~> 0.29.4"},
       {:open_api_spex, "~> 3.16"},
-      {:ecto, "~> 3.9.2"}
+      {:ecto, "~> 3.9.2"},
+      {:inflex, "~> 2.1"}
 
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}

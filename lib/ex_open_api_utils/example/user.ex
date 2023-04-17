@@ -4,7 +4,7 @@ defmodule ExOpenApiUtils.Example.User do
   alias ExOpenApiUtils.Property
   alias OpenApiSpex.Schema
 
-  schema("user") do
+  schema("users") do
     @open_api_property %Property{
       schema: %Schema{type: :string, description: "The name of the user", example: "himangshuj"},
       key: :name
