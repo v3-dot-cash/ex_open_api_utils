@@ -1,5 +1,5 @@
 defmodule ExOpenApiUtils.Example.Tenant do
-  use ExOpenApiUtils, dependencies: [ExOpenApiUtils.Example.User]
+  use ExOpenApiUtils
   use Ecto.Schema
   alias ExOpenApiUtils.Property
   alias OpenApiSpex.Schema

@@ -118,7 +118,7 @@ defmodule ExOpenApiUtils do
 
       schema_module_name = Module.concat(unquote(module), "OpenApiSchema")
       request_module_name = Module.concat(unquote(module), "Request")
-      responese_module_name = Module.concat(unquote(module), "Response")
+      response_module_name = Module.concat(unquote(module), "Response")
       list_response_module_name = Module.concat(unquote(module), "ListResponse")
 
       request_key = Inflex.underscore(title) |> String.to_atom()
@@ -174,7 +174,7 @@ defmodule ExOpenApiUtils do
           OpenApiSpex.schema(unquote(Macro.escape(body)))
         end
 
-      Module.create(responese_module_name, contents, Macro.Env.location(__ENV__))
+      Module.create(response_module_name, contents, Macro.Env.location(__ENV__))
 
       body = %{
         title: Inflex.camelize(title <> "ListResponse"),
@@ -197,7 +197,7 @@ defmodule ExOpenApiUtils do
           OpenApiSpex.schema(unquote(Macro.escape(body)))
         end
 
-      Module.create(responese_module_name, contents, Macro.Env.location(__ENV__))
+      Module.create(list_response_module_name, contents, Macro.Env.location(__ENV__))
 
       Protocol.derive(ExOpenApiUtils.Json, __MODULE__, property_attrs: property_attrs)
     end
