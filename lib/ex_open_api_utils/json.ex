@@ -35,7 +35,8 @@ defimpl ExOpenApiUtils.Json,
     Date,
     Time,
     NaiveDateTime,
-    DateTime
+    DateTime,
+    Atom
   ] do
   def to_json(val), do: val
 end
