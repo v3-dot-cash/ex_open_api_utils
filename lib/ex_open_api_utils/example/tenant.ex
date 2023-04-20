@@ -1,13 +1,12 @@
 defmodule ExOpenApiUtils.Example.Tenant do
   use ExOpenApiUtils
   use Ecto.Schema
-  alias ExOpenApiUtils.Property
   alias OpenApiSpex.Schema
   alias ExOpenApiUtils.Example.User
   import Ecto.Changeset
 
   schema("tenants") do
-    @open_api_property %Property{
+    open_api_property(
       schema: %Schema{
         type: :string,
         description: "The name of the tenant",
@@ -15,22 +14,24 @@ defmodule ExOpenApiUtils.Example.Tenant do
         example: "organiztion"
       },
       key: :name
-    }
+    )
+
     field(:name, :string)
 
-    @open_api_property %Property{
+    open_api_property(
       schema: %Schema{
         type: :array,
         description: "Users belonging to the tenant",
-        items: [ExOpenApiUtils.Example.User],
-        example: [OpenApiSpex.Schema.example(ExOpenApiUtils.Example.User.OpenApiSchema)]
+        items: ExOpenApiUtils.Example.User
+        # example: [OpenApiSpex.Schema.example(ExOpenApiUtils.Example.User.OpenApiSchema)]
       },
       key: :users
-    }
+    )
+
     has_many(:users, User, foreign_key: :owner_id)
   end
 
-  open_api_schema(required: [:name], title: "Tenant", description: "The tenant")
+  open_api_schema(required: [:name], title: "Tenant", description: "The tenant", tags: ["Tenant"])
 
   def changeset(tenant \\ %__MODULE__{}, attrs) do
     cast(tenant, attrs, [:name])
