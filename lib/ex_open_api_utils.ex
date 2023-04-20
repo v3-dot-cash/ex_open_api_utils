@@ -11,7 +11,7 @@ defmodule ExOpenApiUtils do
       require ExOpenApiUtils
 
       import ExOpenApiUtils,
-        only: [open_api_schema: 1, open_api_property: 1, register_open_api_schemas: 5]
+        only: [open_api_schema: 1, open_api_property: 1]
 
       Module.register_attribute(__MODULE__, :open_api_properties, accumulate: true)
       Module.register_attribute(__MODULE__, :open_api_schemas, accumulate: true)
@@ -172,17 +172,11 @@ defmodule ExOpenApiUtils do
 
         Module.create(list_response_module_name, contents, Macro.Env.location(__ENV__))
 
-        Protocol.derive(ExOpenApiUtils.Json, __MODULE__, property_attrs: @open_api_properties)
       end
+
+      Protocol.derive(ExOpenApiUtils.Json, __MODULE__, property_attrs: @open_api_properties)
+
     end
   end
 
-  def register_open_api_schemas(
-        %SchemaDefinition{} = schema_definition,
-        properties,
-        example,
-        root_module,
-        property_attrs
-      ) do
-  end
 end
