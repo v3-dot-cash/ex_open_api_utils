@@ -22,8 +22,8 @@ defmodule ExOpenApiUtils.Example.Tenant do
       schema: %Schema{
         type: :array,
         description: "Users belonging to the tenant",
-        items: ExOpenApiUtils.Example.User
-        # example: [OpenApiSpex.Schema.example(ExOpenApiUtils.Example.User.OpenApiSchema)]
+        items: ExOpenApiUtils.OpenApiSchema.User,
+        example: [OpenApiSpex.Schema.example(ExOpenApiUtils.OpenApiSchema.User)]
       },
       key: :users
     )
@@ -32,9 +32,4 @@ defmodule ExOpenApiUtils.Example.Tenant do
   end
 
   open_api_schema(required: [:name], title: "Tenant", description: "The tenant", tags: ["Tenant"])
-
-  def changeset(tenant \\ %__MODULE__{}, attrs) do
-    cast(tenant, attrs, [:name])
-    |> validate_length(:name, min: @open_api_property[:name][:minLength])
-  end
 end
