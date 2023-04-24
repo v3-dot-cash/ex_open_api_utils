@@ -2,6 +2,7 @@ defmodule ExOpenApiUtils do
   @moduledoc """
   Documentation for `ExOpenApiUtils`.
   """
+  alias OpenApiSpex.RequestBody
   alias ExOpenApiUtils.Property
   alias ExOpenApiUtils.SchemaDefinition
   require Protocol
@@ -82,7 +83,12 @@ defmodule ExOpenApiUtils do
       for %SchemaDefinition{} = schema_definition <- @open_api_schemas do
         title = schema_definition.title
         description = schema_definition.description
+
+        schema_body_module_name =
+          Module.concat([root_module, "OpenApiSchema", title, "RequestBody"])
+
         schema_module_name = Module.concat([root_module, "OpenApiSchema", title])
+
         request_module_name = Module.concat([root_module, "OpenApiSchema", title, "Request"])
         response_module_name = Module.concat([root_module, "OpenApiSchema", title, "Response"])
 
@@ -92,6 +98,46 @@ defmodule ExOpenApiUtils do
         request_key = Inflex.underscore(title) |> String.to_atom()
         request_key_example = Inflex.underscore(title)
         properties = Map.take(properties, schema_definition.properties)
+
+        editable_properties =
+          Map.filter(properties, fn {_k, v} ->
+            !is_map(v) || !Map.get(v, :readOnly, false)
+          end)
+
+        editable_prop_example =
+          Map.filter(example, fn {k, _v} ->
+            prop_key = String.to_atom(k)
+            Map.has_key?(editable_properties, prop_key)
+          end)
+
+        body = %{
+          title: Inflex.camelize(title <> "RequestBody"),
+          type: :object,
+          description: description <> " Request Body",
+          properties: editable_properties,
+          tags: schema_definition.tags,
+          example: editable_prop_example
+        }
+
+        contents =
+          quote do
+            require OpenApiSpex
+
+            OpenApiSpex.schema(unquote(Macro.escape(body)))
+          end
+
+        Module.create(schema_body_module_name, contents, Macro.Env.location(__ENV__))
+
+        readable_properties =
+          Map.filter(properties, fn {_k, v} ->
+            !is_map(v) || !Map.get(v, :writeOnly, false)
+          end)
+
+        readable_prop_example =
+          Map.filter(example, fn {k, _v} ->
+            prop_key = String.to_atom(k)
+            Map.has_key?(readable_properties, prop_key)
+          end)
 
         body = %{
           title: title,
@@ -115,8 +161,8 @@ defmodule ExOpenApiUtils do
         body = %{
           title: Inflex.camelize(title <> "Request"),
           type: :object,
-          description: description <> "Request Body",
-          properties: %{request_key => schema_module_name},
+          description: description <> " Request",
+          properties: %{request_key => schema_body_module_name},
           tags: schema_definition.tags,
           example: %{request_key_example => example}
         }
@@ -171,12 +217,9 @@ defmodule ExOpenApiUtils do
           end
 
         Module.create(list_response_module_name, contents, Macro.Env.location(__ENV__))
-
       end
 
       Protocol.derive(ExOpenApiUtils.Json, __MODULE__, property_attrs: @open_api_properties)
-
     end
   end
-
 end

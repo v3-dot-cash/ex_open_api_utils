@@ -28,3 +28,5 @@ IO.inspect(
 {:ok, tenant} = OpenApiSpex.cast_value(%{name: "ACME Corp 12345", to_be_removed_value: "removed"}, ExOpenApiUtils.OpenApiSchema.Tenant.schema)
 
 IO.inspect(tenant)
+
+IO.inspect(ExOpenApiUtils.OpenApiSchema.Tenant.RequestBody.schema())

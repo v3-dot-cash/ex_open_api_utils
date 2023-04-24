@@ -3,7 +3,6 @@ defmodule ExOpenApiUtils.Example.Tenant do
   use Ecto.Schema
   alias OpenApiSpex.Schema
   alias ExOpenApiUtils.Example.User
-  import Ecto.Changeset
 
   schema("tenants") do
     open_api_property(
@@ -23,7 +22,8 @@ defmodule ExOpenApiUtils.Example.Tenant do
         type: :array,
         description: "Users belonging to the tenant",
         items: ExOpenApiUtils.OpenApiSchema.User,
-        example: [OpenApiSpex.Schema.example(ExOpenApiUtils.OpenApiSchema.User)]
+        example: [OpenApiSpex.Schema.example(ExOpenApiUtils.OpenApiSchema.User)],
+        readOnly: true
       },
       key: :users
     )
@@ -31,5 +31,5 @@ defmodule ExOpenApiUtils.Example.Tenant do
     has_many(:users, User, foreign_key: :owner_id)
   end
 
-  open_api_schema(required: [:name], title: "Tenant", description: "The tenant", tags: ["Tenant"])
+  open_api_schema(required: [:name], title: "Tenant", description: "The Tenant", tags: ["Tenant"])
 end
