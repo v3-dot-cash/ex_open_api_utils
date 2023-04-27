@@ -2,7 +2,6 @@ defmodule ExOpenApiUtils do
   @moduledoc """
   Documentation for `ExOpenApiUtils`.
   """
-  alias OpenApiSpex.RequestBody
   alias ExOpenApiUtils.Property
   alias ExOpenApiUtils.SchemaDefinition
   require Protocol
@@ -98,6 +97,9 @@ defmodule ExOpenApiUtils do
         request_key = Inflex.underscore(title) |> String.to_atom()
         request_key_example = Inflex.underscore(title)
         properties = Map.take(properties, schema_definition.properties)
+        example = Map.filter(example, fn {k,_v} ->
+          String.to_atom(k) in schema_definition.properties
+        end)
 
         editable_properties =
           Map.filter(properties, fn {_k, v} ->
