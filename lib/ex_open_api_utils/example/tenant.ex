@@ -21,9 +21,8 @@ defmodule ExOpenApiUtils.Example.Tenant do
       schema: %Schema{
         type: :array,
         description: "Users belonging to the tenant",
-        items: ExOpenApiUtils.OpenApiSchema.User,
-        example: [OpenApiSpex.Schema.example(ExOpenApiUtils.OpenApiSchema.User)],
-        readOnly: true
+        items: ExOpenApiUtils.OpenApiSchema.UserResponse,
+        example: [OpenApiSpex.Schema.example(ExOpenApiUtils.OpenApiSchema.UserResponse)],
       },
       key: :users
     )

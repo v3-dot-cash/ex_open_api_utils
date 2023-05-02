@@ -1,15 +1,17 @@
 require ExOpenApiUtils
 
-IO.inspect(OpenApiSpex.Schema.example(ExOpenApiUtils.OpenApiSchema.User))
+IO.inspect(OpenApiSpex.Schema.example(ExOpenApiUtils.OpenApiSchema.UserRequest))
+IO.inspect(OpenApiSpex.Schema.example(ExOpenApiUtils.OpenApiSchema.UserResponse))
 
 
-IO.inspect(OpenApiSpex.Schema.example(ExOpenApiUtils.OpenApiSchema.Tenant))
-IO.inspect(ExOpenApiUtils.OpenApiSchema.Business.schema.properties)
+IO.inspect(OpenApiSpex.Schema.example(ExOpenApiUtils.OpenApiSchema.TenantRequest))
+IO.inspect(OpenApiSpex.Schema.example(ExOpenApiUtils.OpenApiSchema.TenantResponse))
+
+IO.inspect(ExOpenApiUtils.OpenApiSchema.BusinessRequest.schema.properties)
 IO.inspect("-------------")
-IO.inspect(ExOpenApiUtils.OpenApiSchema.Business.schema.properties.name)
+IO.inspect(ExOpenApiUtils.OpenApiSchema.BusinessRequest.schema.properties.name)
 IO.inspect("-------------")
-IO.inspect(ExOpenApiUtils.OpenApiSchema.Business.schema)
-IO.inspect(ExOpenApiUtils.OpenApiSchema.Business.Request.schema)
+IO.inspect(ExOpenApiUtils.OpenApiSchema.BusinessResponse.schema)
 
 
 IO.inspect(
@@ -25,8 +27,6 @@ IO.inspect(
   })
 )
 
-{:ok, tenant} = OpenApiSpex.cast_value(%{name: "ACME Corp 12345", to_be_removed_value: "removed"}, ExOpenApiUtils.OpenApiSchema.Tenant.schema)
+{:ok, tenant} = OpenApiSpex.cast_value(%{name: "ACME Corp 12345", to_be_removed_value: "removed"}, ExOpenApiUtils.OpenApiSchema.TenantRequest.schema)
 
 IO.inspect(tenant)
-
-IO.inspect(ExOpenApiUtils.OpenApiSchema.Tenant.RequestBody.schema())
