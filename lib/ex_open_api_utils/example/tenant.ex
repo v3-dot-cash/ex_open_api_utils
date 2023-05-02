@@ -23,6 +23,18 @@ defmodule ExOpenApiUtils.Example.Tenant do
         description: "Users belonging to the tenant",
         items: ExOpenApiUtils.OpenApiSchema.UserResponse,
         example: [OpenApiSpex.Schema.example(ExOpenApiUtils.OpenApiSchema.UserResponse)],
+        readOnly: true
+      },
+      key: :users
+    )
+
+    open_api_property(
+      schema: %Schema{
+        type: :array,
+        description: "Users belonging to the tenant",
+        items: ExOpenApiUtils.OpenApiSchema.UserRequest,
+        example: [OpenApiSpex.Schema.example(ExOpenApiUtils.OpenApiSchema.UserRequest)],
+        writeOnly: true
       },
       key: :users
     )

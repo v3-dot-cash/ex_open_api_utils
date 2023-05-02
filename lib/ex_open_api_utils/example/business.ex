@@ -17,7 +17,15 @@ defmodule ExOpenApiUtils.Example.Business do
     field(:name, :string)
     field(:tenant_id, :binary_id)
 
-    open_api_property(schema: %Schema{readOnly: true, allOf: [ExOpenApiUtils.OpenApiSchema.TenantResponse],  type: :object}, key: :tenant)
+    open_api_property(
+      schema: %Schema{
+        readOnly: true,
+        allOf: [ExOpenApiUtils.OpenApiSchema.TenantResponse],
+        type: :object
+      },
+      key: :tenant
+    )
+
     belongs_to(:tenant, Tenant, foreign_key: :tenant_id, define_field: false)
   end
 

@@ -83,54 +83,59 @@ defmodule ExOpenApiUtils do
         title = schema_definition.title
         description = schema_definition.description
 
-        request_module_name = Module.concat([root_module,"OpenApiSchema" ,"#{title}Request"])
-        response_module_name = Module.concat([root_module,"OpenApiSchema", "#{title}Response"])
+        request_module_name = Module.concat([root_module, "OpenApiSchema", "#{title}Request"])
 
-        properties = Map.take(properties, schema_definition.properties)
-
-        example =
-          Map.filter(example, fn {k, _v} ->
-            String.to_atom(k) in schema_definition.properties
+        request_properties =
+          Enum.filter(@open_api_properties, fn %Property{} = property ->
+            property.key in schema_definition.properties &&
+              !Map.get(property.schema, :readOnly, false)
           end)
 
-        editable_properties =
-          Map.filter(properties, fn {_k, v} ->
-            !is_map(v) || !Map.get(v, :readOnly, false)
+        request_properties_map =
+          Enum.reduce(request_properties, %{}, fn %Property{} = property, acc ->
+            Map.put(acc, property.key, property.schema)
           end)
 
-        editable_prop_example =
-          Map.filter(example, fn {k, _v} ->
-            prop_key = String.to_atom(k)
-            Map.has_key?(editable_properties, prop_key)
+        request_example =
+          Enum.reduce(request_properties, %{}, fn %Property{} = property, acc ->
+            example = OpenApiSpex.Schema.example(property.schema)
+            Map.put(acc, Atom.to_string(property.key), example)
           end)
 
         body = %{
           title: Inflex.camelize(title <> "Request"),
           type: :object,
           description: description <> " Request",
-          properties: editable_properties,
+          properties: request_properties_map,
           tags: schema_definition.tags,
-          example: editable_prop_example
+          example: request_example
         }
 
-        contents =
+        request_module_contents =
           quote do
             require OpenApiSpex
 
             OpenApiSpex.schema(unquote(Macro.escape(body)))
           end
 
-        Module.create(request_module_name, contents, Macro.Env.location(__ENV__))
+        Module.create(request_module_name, request_module_contents, Macro.Env.location(__ENV__))
+        response_module_name = Module.concat([root_module, "OpenApiSchema", "#{title}Response"])
 
-        readable_properties =
-          Map.filter(properties, fn {_k, v} ->
-            !is_map(v) || !Map.get(v, :writeOnly, false)
+        response_properties =
+          Enum.filter(@open_api_properties, fn %Property{} = property ->
+            property.key in schema_definition.properties &&
+              !Map.get(property.schema, :writeOnly, false)
           end)
 
-        readable_prop_example =
-          Map.filter(example, fn {k, _v} ->
-            prop_key = String.to_atom(k)
-            Map.has_key?(readable_properties, prop_key)
+        response_properties_map =
+          Enum.reduce(response_properties, %{}, fn %Property{} = property, acc ->
+            Map.put(acc, property.key, property.schema)
+          end)
+
+        response_example =
+          Enum.reduce(response_properties, %{}, fn %Property{} = property, acc ->
+            example = OpenApiSpex.Schema.example(property.schema)
+            Map.put(acc, Atom.to_string(property.key), example)
           end)
 
         body = %{
@@ -138,19 +143,19 @@ defmodule ExOpenApiUtils do
           type: schema_definition.type,
           required: schema_definition.required,
           description: description,
-          properties: readable_properties,
+          properties: response_properties_map,
           tags: schema_definition.tags,
-          example: readable_prop_example
+          example: response_example
         }
 
-        contents =
+        response_module_contents =
           quote do
             require OpenApiSpex
 
             OpenApiSpex.schema(unquote(Macro.escape(body)))
           end
 
-        Module.create(response_module_name, contents, Macro.Env.location(__ENV__))
+        Module.create(response_module_name, response_module_contents, Macro.Env.location(__ENV__))
       end
 
       exported_properties =
