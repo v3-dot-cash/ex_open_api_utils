@@ -106,6 +106,8 @@ defmodule ExOpenApiUtils do
           title: Inflex.camelize(title <> "Request"),
           type: :object,
           description: description <> " Request",
+          required: schema_definition.required,
+
           properties: request_properties_map,
           tags: schema_definition.tags,
           example: request_example
