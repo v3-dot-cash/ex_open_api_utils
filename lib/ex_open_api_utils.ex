@@ -16,7 +16,7 @@ defmodule ExOpenApiUtils do
       Module.register_attribute(__MODULE__, :open_api_properties, accumulate: true)
       Module.register_attribute(__MODULE__, :open_api_schemas, accumulate: true)
 
-      @after_compile ExOpenApiUtils
+      @before_compile ExOpenApiUtils
     end
   end
 
@@ -59,7 +59,7 @@ defmodule ExOpenApiUtils do
     end
   end
 
-  defmacro __after_compile__(%{module: module}, _bytecode) do
+  defmacro __before_compile__(%{module: module}) do
     quote do
       require Protocol
       alias OpenApiSpex.Schema
