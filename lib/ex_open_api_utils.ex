@@ -88,7 +88,7 @@ defmodule ExOpenApiUtils do
         request_properties =
           Enum.filter(@open_api_properties, fn %Property{} = property ->
             property.key in schema_definition.properties &&
-              !Map.get(property.schema, :readOnly, false)
+              !ExOpenApiUtils.is_readOnly?(property.schema)
           end)
 
         request_properties_map =
@@ -107,9 +107,9 @@ defmodule ExOpenApiUtils do
           type: :object,
           description: description <> " Request",
           required: schema_definition.required,
-
           properties: request_properties_map,
           tags: schema_definition.tags,
+          writeOnly: true,
           example: request_example
         }
 
@@ -126,7 +126,7 @@ defmodule ExOpenApiUtils do
         response_properties =
           Enum.filter(@open_api_properties, fn %Property{} = property ->
             property.key in schema_definition.properties &&
-              !Map.get(property.schema, :writeOnly, false)
+              !ExOpenApiUtils.is_writeOnly?(property.schema)
           end)
 
         response_properties_map =
@@ -147,6 +147,7 @@ defmodule ExOpenApiUtils do
           description: description,
           properties: response_properties_map,
           tags: schema_definition.tags,
+          readOnly: true,
           example: response_example
         }
 
@@ -162,10 +163,28 @@ defmodule ExOpenApiUtils do
 
       exported_properties =
         Enum.filter(@open_api_properties, fn %Property{} = property ->
-          !property.schema.writeOnly
+          !ExOpenApiUtils.is_writeOnly?(property.schema)
         end)
 
       Protocol.derive(ExOpenApiUtils.Json, __MODULE__, property_attrs: exported_properties)
     end
+  end
+
+  def is_readOnly?(%OpenApiSpex.Schema{readOnly: readOnly}) do
+    !!readOnly
+  end
+
+  def is_readOnly?(module) do
+    apply(module, :schema, [])
+    |> is_readOnly?()
+  end
+
+  def is_writeOnly?(%OpenApiSpex.Schema{writeOnly: writeOnly}) do
+    !!writeOnly
+  end
+
+  def is_writeOnly?(module) do
+    apply(module, :schema, [])
+    |> is_writeOnly?()
   end
 end

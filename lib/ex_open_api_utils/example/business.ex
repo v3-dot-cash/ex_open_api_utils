@@ -18,11 +18,7 @@ defmodule ExOpenApiUtils.Example.Business do
     field(:tenant_id, :binary_id)
 
     open_api_property(
-      schema: %Schema{
-        readOnly: true,
-        allOf: [ExOpenApiUtils.OpenApiSchema.TenantResponse],
-        type: :object
-      },
+      schema: ExOpenApiUtils.OpenApiSchema.TenantResponse,
       key: :tenant
     )
 
