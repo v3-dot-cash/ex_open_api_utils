@@ -13,7 +13,17 @@ defimpl ExOpenApiUtils.Json, for: Any do
           Enum.reduce(unquote(Macro.escape(property_attrs)), %{}, fn %Property{} = property,
                                                                      acc ->
             source = property.source || property.key
-            val = Map.get(arg, source) |> ExOpenApiUtils.Json.to_json()
+
+            val =
+              if is_list(source) do
+                Enum.reduce(source, arg, fn key, acc ->
+                  if acc, do: Map.get(acc, key)
+                end)
+              else
+                Map.get(arg, source)
+              end
+
+            val = val |> ExOpenApiUtils.Json.to_json()
             Map.put(acc, Atom.to_string(property.key), val)
           end)
         end

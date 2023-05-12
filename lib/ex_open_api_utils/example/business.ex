@@ -22,6 +22,16 @@ defmodule ExOpenApiUtils.Example.Business do
       key: :tenant
     )
 
+    open_api_property(
+      schema: %Schema{
+        type: :string,
+        description: "The name of the business",
+        example: "ACME Corp"
+      },
+      key: :tenant_name,
+      source: [:tenant, :name]
+    )
+
     belongs_to(:tenant, Tenant, foreign_key: :tenant_id, define_field: false)
   end
 
