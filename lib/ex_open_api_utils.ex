@@ -13,6 +13,8 @@ defmodule ExOpenApiUtils do
       import ExOpenApiUtils,
         only: [open_api_schema: 1, open_api_property: 1]
 
+      alias OpenApiSpex.Schema
+
       Module.register_attribute(__MODULE__, :open_api_properties, accumulate: true)
       Module.register_attribute(__MODULE__, :open_api_schemas, accumulate: true)
 
@@ -110,7 +112,10 @@ defmodule ExOpenApiUtils do
           properties: request_properties_map,
           tags: schema_definition.tags,
           writeOnly: true,
-          example: request_example
+          example: request_example,
+          extensions: %{
+            "order" => schema_definition.properties
+          }
         }
 
         request_module_contents =
@@ -148,7 +153,10 @@ defmodule ExOpenApiUtils do
           properties: response_properties_map,
           tags: schema_definition.tags,
           readOnly: true,
-          example: response_example
+          example: response_example,
+          extensions: %{
+            "order" => schema_definition.properties
+          }
         }
 
         response_module_contents =
