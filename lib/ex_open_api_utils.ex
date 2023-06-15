@@ -104,15 +104,22 @@ defmodule ExOpenApiUtils do
             Map.put(acc, Atom.to_string(property.key), example)
           end)
 
+        request_properties_keys = Map.keys(request_properties_map)
+
+        request_required_properties =
+          Map.filter(schema_definition.required, &(&1 in request_properties_keys))
+
+        request_order = Map.filter(schema_definition.properties, &(&1 in request_properties_keys))
+
         body = %{
           title: Inflex.camelize(title <> "Request"),
           type: :object,
           description: description <> " Request",
-          required: schema_definition.required,
+          required: request_required_properties,
           properties: request_properties_map,
           tags: schema_definition.tags,
           writeOnly: true,
-          example: request_example,
+          example: request_order,
           extensions: %{
             "order" => schema_definition.properties
           }
@@ -145,17 +152,25 @@ defmodule ExOpenApiUtils do
             Map.put(acc, Atom.to_string(property.key), example)
           end)
 
+        responese_properties_keys = Map.keys(request_properties_map)
+
+        response_required_properties =
+          Map.filter(schema_definition.required, &(&1 in responese_properties_keys))
+
+        response_order =
+          Map.filter(schema_definition.properties, &(&1 in responese_properties_keys))
+
         body = %{
           title: Inflex.camelize(title <> "Response"),
           type: schema_definition.type,
-          required: schema_definition.required,
+          required: response_required_properties,
           description: description,
           properties: response_properties_map,
           tags: schema_definition.tags,
           readOnly: true,
           example: response_example,
           extensions: %{
-            "order" => schema_definition.properties
+            "order" => response_order
           }
         }
 
