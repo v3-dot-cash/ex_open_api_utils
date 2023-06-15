@@ -107,9 +107,9 @@ defmodule ExOpenApiUtils do
         request_properties_keys = Map.keys(request_properties_map)
 
         request_required_properties =
-          Map.filter(schema_definition.required, &(&1 in request_properties_keys))
+          Enum.filter(schema_definition.required, &(&1 in request_properties_keys))
 
-        request_order = Map.filter(schema_definition.properties, &(&1 in request_properties_keys))
+        request_order = Enum.filter(schema_definition.properties, &(&1 in request_properties_keys))
 
         body = %{
           title: Inflex.camelize(title <> "Request"),
@@ -119,9 +119,9 @@ defmodule ExOpenApiUtils do
           properties: request_properties_map,
           tags: schema_definition.tags,
           writeOnly: true,
-          example: request_order,
+          example: request_example,
           extensions: %{
-            "order" => schema_definition.properties
+            "order" => request_order
           }
         }
 
@@ -152,13 +152,13 @@ defmodule ExOpenApiUtils do
             Map.put(acc, Atom.to_string(property.key), example)
           end)
 
-        responese_properties_keys = Map.keys(request_properties_map)
+        response_properties_keys = Map.keys(response_properties_map)
 
         response_required_properties =
-          Map.filter(schema_definition.required, &(&1 in responese_properties_keys))
+          Enum.filter(schema_definition.required, &(&1 in response_properties_keys))
 
         response_order =
-          Map.filter(schema_definition.properties, &(&1 in responese_properties_keys))
+          Enum.filter(schema_definition.properties, &(&1 in response_properties_keys))
 
         body = %{
           title: Inflex.camelize(title <> "Response"),
