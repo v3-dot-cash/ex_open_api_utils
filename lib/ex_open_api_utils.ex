@@ -109,7 +109,8 @@ defmodule ExOpenApiUtils do
         request_required_properties =
           Enum.filter(schema_definition.required, &(&1 in request_properties_keys))
 
-        request_order = Enum.filter(schema_definition.properties, &(&1 in request_properties_keys))
+        request_order =
+          Enum.filter(schema_definition.properties, &(&1 in request_properties_keys))
 
         body = %{
           title: Inflex.camelize(title <> "Request"),
@@ -133,6 +134,12 @@ defmodule ExOpenApiUtils do
           end
 
         Module.create(request_module_name, request_module_contents, Macro.Env.location(__ENV__))
+
+        Protocol.derive(ExOpenApiUtils.Json, request_module_name,
+          property_attrs: request_properties,
+          map_direction: :from_open_api
+        )
+
         response_module_name = Module.concat([root_module, "OpenApiSchema", "#{title}Response"])
 
         response_properties =
@@ -182,6 +189,11 @@ defmodule ExOpenApiUtils do
           end
 
         Module.create(response_module_name, response_module_contents, Macro.Env.location(__ENV__))
+
+        Protocol.derive(ExOpenApiUtils.Json, response_module_name,
+          property_attrs: response_properties,
+          map_direction: :from_open_api
+        )
       end
 
       exported_properties =
@@ -189,7 +201,10 @@ defmodule ExOpenApiUtils do
           !ExOpenApiUtils.is_writeOnly?(property.schema)
         end)
 
-      Protocol.derive(ExOpenApiUtils.Json, __MODULE__, property_attrs: exported_properties)
+      Protocol.derive(ExOpenApiUtils.Json, __MODULE__,
+        property_attrs: exported_properties,
+        map_direction: :from_ecto
+      )
     end
   end
 

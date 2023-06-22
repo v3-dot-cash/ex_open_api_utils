@@ -36,7 +36,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.TenantController do
   )
 
   def create(%{body_params: %TenantRequest{} = tenant_request} = conn, %{}) do
-    tenant_params = Map.from_struct(tenant_request)
+    tenant_params = ExOpenApiUtils.Json.to_json(tenant_request)
 
     with {:ok, %Tenant{} = tenant} <- TenantContext.create_tenant(tenant_params) do
       conn
@@ -85,7 +85,8 @@ defmodule PhoenixEctoOpenApiDemoWeb.TenantController do
   )
 
   def update(%{body_params: %TenantRequest{} = tenant_request} = conn, %{id: id}) do
-    tenant_params = Map.from_struct(tenant_request)
+    tenant_params = ExOpenApiUtils.Json.to_json(tenant_request)
+
     tenant = TenantContext.get_tenant!(id)
 
     with {:ok, %Tenant{} = tenant} <- TenantContext.update_tenant(tenant, tenant_params) do
