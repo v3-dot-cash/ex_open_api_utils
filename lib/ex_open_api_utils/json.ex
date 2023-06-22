@@ -1,10 +1,10 @@
-defprotocol ExOpenApiUtils.Json do
+defprotocol ExOpenApiUtils.Mapper do
   @fallback_to_any true
-  @spec to_json(Ecto.Schema.t() | OpenApiSpex.Schema.t()) :: map() | list() | atom()
-  def to_json(struct)
+  @spec to_map(Ecto.Schema.t() | OpenApiSpex.Schema.t()) :: map() | list() | atom()
+  def to_map(struct)
 end
 
-defimpl ExOpenApiUtils.Json, for: Any do
+defimpl ExOpenApiUtils.Mapper, for: Any do
   defmacro __deriving__(module, _struct,
              property_attrs: property_attrs,
              map_direction: map_direction
@@ -12,8 +12,8 @@ defimpl ExOpenApiUtils.Json, for: Any do
     quote do
       alias ExOpenApiUtils.Property
 
-      defimpl ExOpenApiUtils.Json, for: unquote(module) do
-        def to_json(arg) do
+      defimpl ExOpenApiUtils.Mapper, for: unquote(module) do
+        def to_map(arg) do
           case unquote(map_direction) do
             :from_ecto ->
               Enum.reduce(unquote(Macro.escape(property_attrs)), %{}, fn %Property{} = property,
@@ -29,7 +29,7 @@ defimpl ExOpenApiUtils.Json, for: Any do
                     Map.get(arg, source)
                   end
 
-                val = val |> ExOpenApiUtils.Json.to_json()
+                val = val |> ExOpenApiUtils.Mapper.to_map()
                 Map.put(acc, Atom.to_string(property.key), val)
               end)
 
@@ -39,11 +39,11 @@ defimpl ExOpenApiUtils.Json, for: Any do
                 destination = property.source || property.key
 
                 val = Map.get(arg, property.key)
-                val = val |> ExOpenApiUtils.Json.to_json()
+                val = val |> ExOpenApiUtils.Mapper.to_map()
 
                 if is_list(destination) do
                   [root | rest] = destination
-                  exploded_map = ExOpenApiUtils.Json.Utils.explode_map(rest, val)
+                  exploded_map = ExOpenApiUtils.Mapper.Utils.explode_map(rest, val)
 
                   Map.update(acc, root, %{}, fn existing ->
                     Map.merge(existing, exploded_map)
@@ -58,32 +58,32 @@ defimpl ExOpenApiUtils.Json, for: Any do
     end
   end
 
-  def to_json(val) do
+  def to_map(val) do
     val
   end
 end
 
-defimpl ExOpenApiUtils.Json, for: [Map] do
-  def to_json(val) do
+defimpl ExOpenApiUtils.Mapper, for: [Map] do
+  def to_map(val) do
     Enum.reduce(val, %{}, fn {k, v}, acc ->
-      Map.put(acc, k, ExOpenApiUtils.Json.to_json(v))
+      Map.put(acc, k, ExOpenApiUtils.Mapper.to_map(v))
     end)
   end
 end
 
-defimpl ExOpenApiUtils.Json, for: [List] do
-  def to_json(list) do
-    Enum.map(list, &ExOpenApiUtils.Json.to_json/1)
+defimpl ExOpenApiUtils.Mapper, for: [List] do
+  def to_map(list) do
+    Enum.map(list, &ExOpenApiUtils.Mapper.to_map/1)
   end
 end
 
-defimpl ExOpenApiUtils.Json, for: Ecto.Association.NotLoaded do
-  def to_json(_val) do
+defimpl ExOpenApiUtils.Mapper, for: Ecto.Association.NotLoaded do
+  def to_map(_val) do
     :not_loaded
   end
 end
 
-defmodule ExOpenApiUtils.Json.Utils do
+defmodule ExOpenApiUtils.Mapper.Utils do
   def explode_map(key, val) when is_atom(key) do
     %{key => val}
   end

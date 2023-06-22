@@ -36,7 +36,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.BusinessController do
   )
 
   def create(%{body_params: %BusinessRequest{} = business_request} = conn, %{}) do
-    business_params = ExOpenApiUtils.Json.to_json(business_request)
+    business_params = ExOpenApiUtils.Mapper.to_map(business_request)
 
     with {:ok, %Business{} = business} <- BusinessContext.create_business(business_params) do
       conn
@@ -87,7 +87,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.BusinessController do
   def update(%{body_params: %BusinessRequest{} = business_request} = conn, %{id: id}) do
     business = BusinessContext.get_business!(id)
 
-    business_params = ExOpenApiUtils.Json.to_json(business_request)
+    business_params = ExOpenApiUtils.Mapper.to_map(business_request)
 
     with {:ok, %Business{} = business} <-
            BusinessContext.update_business(business, business_params) do

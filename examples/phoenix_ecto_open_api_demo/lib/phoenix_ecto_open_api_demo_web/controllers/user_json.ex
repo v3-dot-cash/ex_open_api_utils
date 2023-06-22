@@ -16,6 +16,6 @@ defmodule PhoenixEctoOpenApiDemoWeb.UserJSON do
   end
 
   defp data(%User{} = user) do
-    ExOpenApiUtils.Json.to_json(user)
+    ExOpenApiUtils.Mapper.to_map(user)
   end
 end

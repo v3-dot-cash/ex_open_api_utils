@@ -135,7 +135,7 @@ defmodule ExOpenApiUtils do
 
         Module.create(request_module_name, request_module_contents, Macro.Env.location(__ENV__))
 
-        Protocol.derive(ExOpenApiUtils.Json, request_module_name,
+        Protocol.derive(ExOpenApiUtils.Mapper, request_module_name,
           property_attrs: request_properties,
           map_direction: :from_open_api
         )
@@ -190,7 +190,7 @@ defmodule ExOpenApiUtils do
 
         Module.create(response_module_name, response_module_contents, Macro.Env.location(__ENV__))
 
-        Protocol.derive(ExOpenApiUtils.Json, response_module_name,
+        Protocol.derive(ExOpenApiUtils.Mapper, response_module_name,
           property_attrs: response_properties,
           map_direction: :from_open_api
         )
@@ -201,7 +201,7 @@ defmodule ExOpenApiUtils do
           !ExOpenApiUtils.is_writeOnly?(property.schema)
         end)
 
-      Protocol.derive(ExOpenApiUtils.Json, __MODULE__,
+      Protocol.derive(ExOpenApiUtils.Mapper, __MODULE__,
         property_attrs: exported_properties,
         map_direction: :from_ecto
       )

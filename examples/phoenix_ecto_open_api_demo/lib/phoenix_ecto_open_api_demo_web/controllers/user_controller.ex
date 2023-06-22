@@ -34,7 +34,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.UserController do
   )
 
   def create(%{body_params: %UserRequest{} = user_request} = conn, %{}) do
-    user_params = ExOpenApiUtils.Json.to_json(user_request)
+    user_params = ExOpenApiUtils.Mapper.to_map(user_request)
 
     with {:ok, %User{} = user} <- UserContext.create_user(user_params) do
       conn
@@ -83,7 +83,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.UserController do
   )
 
   def update(%{body_params: %UserRequest{} = user_request} = conn, %{id: id}) do
-    user_params = ExOpenApiUtils.Json.to_json(user_request)
+    user_params = ExOpenApiUtils.Mapper.to_map(user_request)
 
     user = UserContext.get_user!(id)
 
