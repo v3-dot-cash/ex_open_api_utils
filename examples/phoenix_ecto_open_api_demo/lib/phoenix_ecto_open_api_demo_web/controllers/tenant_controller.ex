@@ -36,9 +36,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.TenantController do
   )
 
   def create(%{body_params: %TenantRequest{} = tenant_request} = conn, %{}) do
-    tenant_params = ExOpenApiUtils.Mapper.to_map(tenant_request)
-
-    with {:ok, %Tenant{} = tenant} <- TenantContext.create_tenant(tenant_params) do
+    with {:ok, %Tenant{} = tenant} <- TenantContext.create_tenant(tenant_request) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", ~p"/api/tenants/#{tenant}")
@@ -85,11 +83,9 @@ defmodule PhoenixEctoOpenApiDemoWeb.TenantController do
   )
 
   def update(%{body_params: %TenantRequest{} = tenant_request} = conn, %{id: id}) do
-    tenant_params = ExOpenApiUtils.Mapper.to_map(tenant_request)
-
     tenant = TenantContext.get_tenant!(id)
 
-    with {:ok, %Tenant{} = tenant} <- TenantContext.update_tenant(tenant, tenant_params) do
+    with {:ok, %Tenant{} = tenant} <- TenantContext.update_tenant(tenant, tenant_request) do
       render(conn, :show, tenant: tenant)
     end
   end

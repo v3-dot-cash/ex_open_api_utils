@@ -1,9 +1,5 @@
 defmodule PhoenixEctoOpenApiDemo.BusinessContext.Business do
-  use Ecto.Schema
   use ExOpenApiUtils
-
-  import Ecto.Changeset
-
   alias PhoenixEctoOpenApiDemo.TenantContext.Business
 
   @primary_key {:id, :binary_id, autogenerate: true}
