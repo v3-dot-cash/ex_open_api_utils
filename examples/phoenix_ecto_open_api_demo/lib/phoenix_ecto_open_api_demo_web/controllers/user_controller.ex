@@ -34,9 +34,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.UserController do
   )
 
   def create(%{body_params: %UserRequest{} = user_request} = conn, %{}) do
-    user_params = Map.from_struct(user_request)
-
-    with {:ok, %User{} = user} <- UserContext.create_user(user_params) do
+    with {:ok, %User{} = user} <- UserContext.create_user(user_request) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", ~p"/api/users/#{user}")
@@ -83,11 +81,9 @@ defmodule PhoenixEctoOpenApiDemoWeb.UserController do
   )
 
   def update(%{body_params: %UserRequest{} = user_request} = conn, %{id: id}) do
-    user_params = Map.from_struct(user_request)
-
     user = UserContext.get_user!(id)
 
-    with {:ok, %User{} = user} <- UserContext.update_user(user, user_params) do
+    with {:ok, %User{} = user} <- UserContext.update_user(user, user_request) do
       render(conn, :show, user: user)
     end
   end

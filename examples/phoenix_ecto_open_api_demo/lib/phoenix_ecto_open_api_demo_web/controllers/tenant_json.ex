@@ -16,6 +16,6 @@ defmodule PhoenixEctoOpenApiDemoWeb.TenantJSON do
   end
 
   defp data(%Tenant{} = tenant) do
-    ExOpenApiUtils.Json.to_json(tenant)
+    ExOpenApiUtils.Mapper.to_map(tenant)
   end
 end

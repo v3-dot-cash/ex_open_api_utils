@@ -1,7 +1,5 @@
 defmodule PhoenixEctoOpenApiDemo.TenantContext.Tenant do
   use ExOpenApiUtils
-  use Ecto.Schema
-  import Ecto.Changeset
   alias PhoenixEctoOpenApiDemo.UserContext.User
   alias PhoenixEctoOpenApiDemo.BusinessContext.Business
 

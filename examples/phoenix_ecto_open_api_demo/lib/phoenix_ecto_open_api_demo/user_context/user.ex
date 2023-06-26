@@ -1,7 +1,5 @@
 defmodule PhoenixEctoOpenApiDemo.UserContext.User do
   use ExOpenApiUtils
-  use Ecto.Schema
-  import Ecto.Changeset
 
   open_api_property(
     schema: %Schema{

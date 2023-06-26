@@ -36,9 +36,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.BusinessController do
   )
 
   def create(%{body_params: %BusinessRequest{} = business_request} = conn, %{}) do
-    business_params = Map.from_struct(business_request)
-
-    with {:ok, %Business{} = business} <- BusinessContext.create_business(business_params) do
+    with {:ok, %Business{} = business} <- BusinessContext.create_business(business_request) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", ~p"/api/businesses/#{business}")
@@ -87,10 +85,8 @@ defmodule PhoenixEctoOpenApiDemoWeb.BusinessController do
   def update(%{body_params: %BusinessRequest{} = business_request} = conn, %{id: id}) do
     business = BusinessContext.get_business!(id)
 
-    business_params = Map.from_struct(business_request)
-
     with {:ok, %Business{} = business} <-
-           BusinessContext.update_business(business, business_params) do
+           BusinessContext.update_business(business, business_request) do
       render(conn, :show, business: business)
     end
   end
