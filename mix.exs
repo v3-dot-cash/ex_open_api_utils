@@ -26,7 +26,7 @@ defmodule ExOpenApiUtils.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_doc, "~> 0.29.4"},
+      {:ex_doc, ">= 0.29.4"},
       {:open_api_spex, "~> 3.16"},
       {:ecto, "~> 3.9.2"},
       {:inflex, "~> 2.1"},
