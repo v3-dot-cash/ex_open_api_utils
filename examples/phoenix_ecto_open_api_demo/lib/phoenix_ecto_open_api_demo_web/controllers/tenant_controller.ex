@@ -13,7 +13,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.TenantController do
 
   operation(:index,
     summary: "Gets the list of tenants",
-    operationId: "Tenant.list",
+    operation_id: "Tenant.list",
     responses: [
       ok:
         {"Tenant list response", "application/json",
@@ -28,7 +28,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.TenantController do
 
   operation(:create,
     summary: "Create a new tenant",
-    operationId: "Tenant.create",
+    operation_id: "Tenant.create",
     request_body: {"Tenant Creating Body", "application/json", TenantRequest},
     responses: [
       created: {"Tenant  response", "application/json", TenantResponse}
@@ -46,7 +46,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.TenantController do
 
   operation(:show,
     summary: "Gets the details of individual tenant",
-    operationId: "Tenant.get",
+    operation_id: "Tenant.get",
     parameters: [
       id: [
         in: :path,
@@ -67,7 +67,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.TenantController do
 
   operation(:update,
     summary: "Update an existing tenant",
-    operationId: "Tenant.update",
+    operation_id: "Tenant.update",
     parameters: [
       id: [
         in: :path,
@@ -92,7 +92,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.TenantController do
 
   operation(:delete,
     summary: "Delete an existing tenant",
-    operationId: "Tenant.delete",
+    operation_id: "Tenant.delete",
     parameters: [
       id: [
         in: :path,

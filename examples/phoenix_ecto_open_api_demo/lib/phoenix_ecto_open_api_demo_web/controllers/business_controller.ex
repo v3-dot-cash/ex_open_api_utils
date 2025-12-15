@@ -13,7 +13,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.BusinessController do
 
   operation(:index,
     summary: "Gets the list of busineses",
-    operationId: "Business.list",
+    operation_id: "Business.list",
     responses: [
       ok:
         {"Business list response", "application/json",
@@ -28,7 +28,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.BusinessController do
 
   operation(:create,
     summary: "Creates an user for a business",
-    operationId: "Business.create",
+    operation_id: "Business.create",
     request_body: {"User Creation Body", "application/json", BusinessRequest},
     responses: [
       created: {"Business response", "application/json", BusinessResponse}
@@ -46,7 +46,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.BusinessController do
 
   operation(:show,
     summary: "Fetches an user",
-    operationId: "Business.show",
+    operation_id: "Business.show",
     parameters: [
       id: [
         in: :path,
@@ -67,7 +67,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.BusinessController do
 
   operation(:update,
     summary: "Updates a Business",
-    operationId: "Business.update",
+    operation_id: "Business.update",
     parameters: [
       id: [
         in: :path,
@@ -93,7 +93,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.BusinessController do
 
   operation(:delete,
     summary: "Delete an existing business",
-    operationId: "Business.delete",
+    operation_id: "Business.delete",
     parameters: [
       id: [
         in: :path,

@@ -32,16 +32,16 @@ defmodule PhoenixEctoOpenApiDemo.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.0-rc.3", override: true},
-      {:phoenix_ecto, "~> 4.4"},
-      {:ecto_sql, "~> 3.6"},
-      {:postgrex, ">= 0.0.0"},
-      {:swoosh, "~> 1.3"},
-      {:finch, "~> 0.13"},
-      {:telemetry_metrics, "~> 0.6"},
-      {:telemetry_poller, "~> 1.0"},
-      {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.5"},
+      {:phoenix, "~> 1.8"},
+      {:phoenix_ecto, "~> 4.7"},
+      {:ecto_sql, "~> 3.13"},
+      {:postgrex, "~> 0.21.1"},
+      {:swoosh, "~> 1.19"},
+      {:finch, "~> 0.20.0"},
+      {:telemetry_metrics, "~> 1.1"},
+      {:telemetry_poller, "~> 1.3"},
+      {:jason, "~> 1.4"},
+      {:plug_cowboy, "~> 2.7"},
       {:ex_open_api_utils, path: "../../"}
     ]
   end

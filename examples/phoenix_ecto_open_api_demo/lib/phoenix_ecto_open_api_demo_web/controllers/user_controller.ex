@@ -13,7 +13,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.UserController do
 
   operation(:index,
     summary: "Gets the list of users",
-    operationId: "User.list",
+    operation_id: "User.list",
     responses: [
       ok: {"User list response", "application/json", %Schema{type: :array, items: UserResponse}}
     ]
@@ -26,7 +26,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.UserController do
 
   operation(:create,
     summary: "Creates an userr",
-    operationId: "User.create",
+    operation_id: "User.create",
     request_body: {"User Creation Body", "application/json", UserRequest},
     responses: [
       created: {"User  response", "application/json", UserResponse}
@@ -44,7 +44,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.UserController do
 
   operation(:show,
     summary: "Fetches an user for a customer",
-    operationId: "User.show",
+    operation_id: "User.show",
     parameters: [
       id: [
         in: :path,
@@ -65,7 +65,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.UserController do
 
   operation(:update,
     summary: "Updates an user for a customer",
-    operationId: "User.update",
+    operation_id: "User.update",
     parameters: [
       id: [
         in: :path,
@@ -90,7 +90,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.UserController do
 
   operation(:delete,
     summary: "Delete an existing user",
-    operationId: "User.delete",
+    operation_id: "User.delete",
     parameters: [
       id: [
         in: :path,
