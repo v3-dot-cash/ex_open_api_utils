@@ -91,6 +91,7 @@ defmodule ExOpenApiUtils.Mapper.Utils do
   def explode_map([root | rest], val) do
     %{root => explode_map(rest, val)}
   end
+
   def explode_map([], val) do
     val
   end

@@ -5,5 +5,4 @@ defmodule ExOpenApiUtils.Changeset do
   def cast(data, params, permitted, opts \\ []) do
     Ecto.Changeset.cast(data, ExOpenApiUtils.Mapper.to_map(params), permitted, opts)
   end
-
 end

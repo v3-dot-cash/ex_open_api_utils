@@ -17,7 +17,7 @@ defmodule ExOpenApiUtils do
 
       alias OpenApiSpex.Schema
       import Ecto.Changeset, except: [cast: 4, cast: 3]
-      import  ExOpenApiUtils.Changeset, only: [cast: 4, cast: 3]
+      import ExOpenApiUtils.Changeset, only: [cast: 4, cast: 3]
 
       Module.register_attribute(__MODULE__, :open_api_properties, accumulate: true)
       Module.register_attribute(__MODULE__, :open_api_schemas, accumulate: true)
@@ -229,6 +229,4 @@ defmodule ExOpenApiUtils do
     apply(module, :schema, [])
     |> is_writeOnly?()
   end
-
-
 end
