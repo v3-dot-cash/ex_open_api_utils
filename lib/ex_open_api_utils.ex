@@ -126,7 +126,7 @@ defmodule ExOpenApiUtils do
           writeOnly: true,
           example: request_example,
           extensions: %{
-            "order" => request_order
+            "x-order" => request_order
           }
         }
 
@@ -181,7 +181,7 @@ defmodule ExOpenApiUtils do
           readOnly: true,
           example: response_example,
           extensions: %{
-            "order" => response_order
+            "x-order" => response_order
           }
         }
 
