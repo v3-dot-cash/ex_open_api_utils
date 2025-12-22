@@ -44,9 +44,9 @@ defmodule ExOpenApiUtilsTest.TestSchema do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "test_schemas" do
-    field :name, :string
-    field :email, :string
-    field :tenant_id, :binary_id
+    field(:name, :string)
+    field(:email, :string)
+    field(:tenant_id, :binary_id)
     timestamps()
   end
 
