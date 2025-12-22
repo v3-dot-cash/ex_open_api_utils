@@ -24,3 +24,6 @@ ex_open_api_utils-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# ElixirLS
+/.elixir_ls/

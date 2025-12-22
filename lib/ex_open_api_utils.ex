@@ -16,8 +16,9 @@ defmodule ExOpenApiUtils do
         only: [open_api_schema: 1, open_api_property: 1]
 
       alias OpenApiSpex.Schema
+      alias ExOpenApiUtils.Helpers
       import Ecto.Changeset, except: [cast: 4, cast: 3]
-      import  ExOpenApiUtils.Changeset, only: [cast: 4, cast: 3]
+      import ExOpenApiUtils.Changeset, only: [cast: 4, cast: 3]
 
       Module.register_attribute(__MODULE__, :open_api_properties, accumulate: true)
       Module.register_attribute(__MODULE__, :open_api_schemas, accumulate: true)
@@ -126,7 +127,7 @@ defmodule ExOpenApiUtils do
           writeOnly: true,
           example: request_example,
           extensions: %{
-            "order" => request_order
+            "x-order" => request_order
           }
         }
 
@@ -181,7 +182,7 @@ defmodule ExOpenApiUtils do
           readOnly: true,
           example: response_example,
           extensions: %{
-            "order" => response_order
+            "x-order" => response_order
           }
         }
 
@@ -229,6 +230,4 @@ defmodule ExOpenApiUtils do
     apply(module, :schema, [])
     |> is_writeOnly?()
   end
-
-
 end

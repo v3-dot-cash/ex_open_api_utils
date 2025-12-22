@@ -4,11 +4,12 @@ defmodule ExOpenApiUtils.MixProject do
   def project do
     [
       app: :ex_open_api_utils,
-      version: "0.8.0",
-      elixir: "~> 1.14",
+      version: "0.8.1",
+      elixir: "~> 1.18",
       description: "Elixir Utilities for open api 3.0",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      consolidate_protocols: Mix.env() != :test,
       package: [
         links: %{"GitHub" => "https://github.com/v3-dot-cash/ex_open_api_utils"},
         licenses: ["MIT"]
