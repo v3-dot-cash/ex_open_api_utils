@@ -169,9 +169,9 @@ defmodule ExOpenApiUtils do
       import ExOpenApiUtils,
         only: [open_api_schema: 1, open_api_property: 1]
 
-      alias OpenApiSpex.Schema
       alias ExOpenApiUtils.Helpers
       alias ExOpenApiUtils.Tag
+      alias OpenApiSpex.Schema
       import Ecto.Changeset, except: [cast: 4, cast: 3]
       import ExOpenApiUtils.Changeset, only: [cast: 4, cast: 3]
 
