@@ -6,7 +6,7 @@ defmodule ExOpenApiUtils.MixProject do
       app: :ex_open_api_utils,
       version: "0.9.0",
       elixir: "~> 1.18",
-      description: "Elixir Utilities for open api 3.0",
+      description: "Elixir utilities for OpenAPI 3.2 schema generation from Ecto schemas",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       consolidate_protocols: Mix.env() != :test,
