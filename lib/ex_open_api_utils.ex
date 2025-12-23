@@ -1,10 +1,164 @@
 defmodule ExOpenApiUtils do
   @moduledoc """
-  Documentation for `ExOpenApiUtils`.
+  OpenAPI schema generation from Ecto schemas with OpenAPI 3.2 support.
+
+  ## Migration Guide
+
+  ### From v0.9.x to v0.10.x (OpenAPI 3.2)
+
+  #### 1. Update OpenAPI Version
+
+  In your ApiSpec module, update the version:
+
+      # Before (v0.9.x)
+      %OpenApi{
+        openapi: "3.0.0",
+        ...
+      }
+
+      # After (v0.10.x)
+      %OpenApi{
+        openapi: ExOpenApiUtils.openapi_version(),  # Returns "3.2.0"
+        ...
+      }
+
+  #### 2. Migrate Tags (Optional - for tag hierarchy)
+
+  If using flat tags, no changes needed. For hierarchical tags:
+
+      # Before (v0.9.x) - flat tags
+      %OpenApi{
+        tags: [
+          %OpenApiSpex.Tag{name: "Users"},
+          %OpenApiSpex.Tag{name: "Profile"},
+          %OpenApiSpex.Tag{name: "Admin"}
+        ]
+      }
+
+      # After (v0.10.x) - hierarchical tags with 3.2 fields
+      alias ExOpenApiUtils.Tag
+
+      %OpenApi{
+        tags: [
+          Tag.new("Users", summary: "User Management"),
+          Tag.nested("Profile", "Users", summary: "User Profiles"),
+          Tag.navigation("Admin", summary: "Admin Panel")
+        ] |> Tag.to_open_api_spex_list()
+      }
+
+  #### 3. Remove Deprecated Extensions (if using Redoc-specific)
+
+  Replace non-standard extensions with OpenAPI 3.2 native fields:
+
+  | Old (Redoc)       | New (3.2 native)     |
+  |-------------------|----------------------|
+  | `x-tagGroups`     | Use `Tag.nested/3`   |
+  | `x-displayName`   | Use `summary` field  |
+
+  ### Extensions Retained
+
+  These extensions are kept for TypeScript/NestJS codegen compatibility:
+
+  - `x-enum-varnames` - TypeScript enum member names
+  - `x-order` - Property ordering in generated code
+
+  ## OpenAPI 3.2 Features
+
+  ### Setting OpenAPI Version
+
+      def spec do
+        %OpenApi{
+          openapi: ExOpenApiUtils.openapi_version(),
+          # ... rest of spec
+        }
+      end
+
+  ### Tag Hierarchy (3.2)
+
+  OpenAPI 3.2 introduces native tag hierarchy support:
+
+      alias ExOpenApiUtils.Tag
+
+      def tags do
+        [
+          # Parent tag
+          Tag.new("Settings", summary: "Application Settings"),
+
+          # Nested tags (child of Settings)
+          Tag.nested("Profile", "Settings", summary: "Profile Settings"),
+          Tag.nested("Security", "Settings", summary: "Security Settings"),
+
+          # Navigation tag (for UI grouping)
+          Tag.navigation("Admin", summary: "Admin Panel")
+        ]
+        |> Tag.to_open_api_spex_list()
+      end
+
+  This generates:
+
+      tags:
+        - name: Settings
+          summary: Application Settings
+        - name: Profile
+          summary: Profile Settings
+          parent: Settings
+        - name: Security
+          summary: Security Settings
+          parent: Settings
+        - name: Admin
+          summary: Admin Panel
+          kind: navigation
+
+  ## Basic Usage
+
+  Define schemas with `use ExOpenApiUtils`:
+
+      defmodule MyApp.User do
+        use ExOpenApiUtils
+
+        open_api_property(
+          key: :name,
+          schema: %Schema{type: :string, description: "User name"}
+        )
+
+        @primary_key {:id, :binary_id, autogenerate: true}
+        schema "users" do
+          field :name, :string
+        end
+
+        open_api_schema(
+          title: "User",
+          description: "Application user",
+          required: [:name],
+          properties: [:name],
+          tags: ["Users"]
+        )
+      end
   """
   alias ExOpenApiUtils.Property
   alias ExOpenApiUtils.SchemaDefinition
+  alias ExOpenApiUtils.Tag
   require Protocol
+
+  @doc """
+  Returns the OpenAPI version string for 3.2 compliance.
+
+  ## Example
+
+      %OpenApi{
+        openapi: ExOpenApiUtils.openapi_version(),
+        info: %Info{...}
+      }
+  """
+  @spec openapi_version() :: String.t()
+  def openapi_version, do: "3.2.0"
+
+  @doc """
+  Alias for Tag module for convenience.
+  """
+  defdelegate tag(name, opts \\ []), to: Tag, as: :new
+  defdelegate nested_tag(name, parent, opts \\ []), to: Tag, as: :nested
+  defdelegate navigation_tag(name, opts \\ []), to: Tag, as: :navigation
 
   defmacro __using__(_opts) do
     quote do
@@ -15,8 +169,9 @@ defmodule ExOpenApiUtils do
       import ExOpenApiUtils,
         only: [open_api_schema: 1, open_api_property: 1]
 
-      alias OpenApiSpex.Schema
       alias ExOpenApiUtils.Helpers
+      alias ExOpenApiUtils.Tag
+      alias OpenApiSpex.Schema
       import Ecto.Changeset, except: [cast: 4, cast: 3]
       import ExOpenApiUtils.Changeset, only: [cast: 4, cast: 3]
 

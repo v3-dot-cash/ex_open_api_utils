@@ -59,7 +59,6 @@ jobs:
 
       - name: Run Credo
         run: mix credo --strict
-        continue-on-error: true
 
       - name: Install example dependencies
         working-directory: examples/phoenix_ecto_open_api_demo
