@@ -1,16 +1,70 @@
 defmodule ExOpenApiUtils do
   @moduledoc """
-  Documentation for `ExOpenApiUtils`.
+  OpenAPI schema generation from Ecto schemas with OpenAPI 3.2 support.
 
-  ## OpenAPI 3.2 Support
+  ## Migration Guide
 
-  This library supports OpenAPI 3.2 features including:
-  - Tag hierarchy with `parent`, `kind`, and `summary` fields
-  - See `ExOpenApiUtils.Tag` for tag struct with 3.2 fields
+  ### From v0.9.x to v0.10.x (OpenAPI 3.2)
+
+  #### 1. Update OpenAPI Version
+
+  In your ApiSpec module, update the version:
+
+      # Before (v0.9.x)
+      %OpenApi{
+        openapi: "3.0.0",
+        ...
+      }
+
+      # After (v0.10.x)
+      %OpenApi{
+        openapi: ExOpenApiUtils.openapi_version(),  # Returns "3.2.0"
+        ...
+      }
+
+  #### 2. Migrate Tags (Optional - for tag hierarchy)
+
+  If using flat tags, no changes needed. For hierarchical tags:
+
+      # Before (v0.9.x) - flat tags
+      %OpenApi{
+        tags: [
+          %OpenApiSpex.Tag{name: "Users"},
+          %OpenApiSpex.Tag{name: "Profile"},
+          %OpenApiSpex.Tag{name: "Admin"}
+        ]
+      }
+
+      # After (v0.10.x) - hierarchical tags with 3.2 fields
+      alias ExOpenApiUtils.Tag
+
+      %OpenApi{
+        tags: [
+          Tag.new("Users", summary: "User Management"),
+          Tag.nested("Profile", "Users", summary: "User Profiles"),
+          Tag.navigation("Admin", summary: "Admin Panel")
+        ] |> Tag.to_open_api_spex_list()
+      }
+
+  #### 3. Remove Deprecated Extensions (if using Redoc-specific)
+
+  Replace non-standard extensions with OpenAPI 3.2 native fields:
+
+  | Old (Redoc)       | New (3.2 native)     |
+  |-------------------|----------------------|
+  | `x-tagGroups`     | Use `Tag.nested/3`   |
+  | `x-displayName`   | Use `summary` field  |
+
+  ### Extensions Retained
+
+  These extensions are kept for TypeScript/NestJS codegen compatibility:
+
+  - `x-enum-varnames` - TypeScript enum member names
+  - `x-order` - Property ordering in generated code
+
+  ## OpenAPI 3.2 Features
 
   ### Setting OpenAPI Version
-
-  In your ApiSpec module, set the version to 3.2.0:
 
       def spec do
         %OpenApi{
@@ -19,17 +73,66 @@ defmodule ExOpenApiUtils do
         }
       end
 
-  ### Using 3.2 Tags
+  ### Tag Hierarchy (3.2)
+
+  OpenAPI 3.2 introduces native tag hierarchy support:
 
       alias ExOpenApiUtils.Tag
 
       def tags do
         [
-          Tag.new("Users", summary: "User Management"),
-          Tag.nested("Profile", "Users", summary: "User Profiles"),
+          # Parent tag
+          Tag.new("Settings", summary: "Application Settings"),
+
+          # Nested tags (child of Settings)
+          Tag.nested("Profile", "Settings", summary: "Profile Settings"),
+          Tag.nested("Security", "Settings", summary: "Security Settings"),
+
+          # Navigation tag (for UI grouping)
           Tag.navigation("Admin", summary: "Admin Panel")
         ]
         |> Tag.to_open_api_spex_list()
+      end
+
+  This generates:
+
+      tags:
+        - name: Settings
+          summary: Application Settings
+        - name: Profile
+          summary: Profile Settings
+          parent: Settings
+        - name: Security
+          summary: Security Settings
+          parent: Settings
+        - name: Admin
+          summary: Admin Panel
+          kind: navigation
+
+  ## Basic Usage
+
+  Define schemas with `use ExOpenApiUtils`:
+
+      defmodule MyApp.User do
+        use ExOpenApiUtils
+
+        open_api_property(
+          key: :name,
+          schema: %Schema{type: :string, description: "User name"}
+        )
+
+        @primary_key {:id, :binary_id, autogenerate: true}
+        schema "users" do
+          field :name, :string
+        end
+
+        open_api_schema(
+          title: "User",
+          description: "Application user",
+          required: [:name],
+          properties: [:name],
+          tags: ["Users"]
+        )
       end
   """
   alias ExOpenApiUtils.Property
