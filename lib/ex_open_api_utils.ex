@@ -1,10 +1,61 @@
 defmodule ExOpenApiUtils do
   @moduledoc """
   Documentation for `ExOpenApiUtils`.
+
+  ## OpenAPI 3.2 Support
+
+  This library supports OpenAPI 3.2 features including:
+  - Tag hierarchy with `parent`, `kind`, and `summary` fields
+  - See `ExOpenApiUtils.Tag` for tag struct with 3.2 fields
+
+  ### Setting OpenAPI Version
+
+  In your ApiSpec module, set the version to 3.2.0:
+
+      def spec do
+        %OpenApi{
+          openapi: ExOpenApiUtils.openapi_version(),
+          # ... rest of spec
+        }
+      end
+
+  ### Using 3.2 Tags
+
+      alias ExOpenApiUtils.Tag
+
+      def tags do
+        [
+          Tag.new("Users", summary: "User Management"),
+          Tag.nested("Profile", "Users", summary: "User Profiles"),
+          Tag.navigation("Admin", summary: "Admin Panel")
+        ]
+        |> Tag.to_open_api_spex_list()
+      end
   """
   alias ExOpenApiUtils.Property
   alias ExOpenApiUtils.SchemaDefinition
+  alias ExOpenApiUtils.Tag
   require Protocol
+
+  @doc """
+  Returns the OpenAPI version string for 3.2 compliance.
+
+  ## Example
+
+      %OpenApi{
+        openapi: ExOpenApiUtils.openapi_version(),
+        info: %Info{...}
+      }
+  """
+  @spec openapi_version() :: String.t()
+  def openapi_version, do: "3.2.0"
+
+  @doc """
+  Alias for Tag module for convenience.
+  """
+  defdelegate tag(name, opts \\ []), to: Tag, as: :new
+  defdelegate nested_tag(name, parent, opts \\ []), to: Tag, as: :nested
+  defdelegate navigation_tag(name, opts \\ []), to: Tag, as: :navigation
 
   defmacro __using__(_opts) do
     quote do
@@ -17,6 +68,7 @@ defmodule ExOpenApiUtils do
 
       alias OpenApiSpex.Schema
       alias ExOpenApiUtils.Helpers
+      alias ExOpenApiUtils.Tag
       import Ecto.Changeset, except: [cast: 4, cast: 3]
       import ExOpenApiUtils.Changeset, only: [cast: 4, cast: 3]
 
