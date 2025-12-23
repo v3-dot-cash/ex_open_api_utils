@@ -31,10 +31,8 @@ defmodule ExOpenApiUtils.MixProject do
       {:open_api_spex, "~> 3.22"},
       {:ecto, "~> 3.13"},
       {:inflex, "~> 2.1"},
-      {:ymlr, "~> 5.1"}
-
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:ymlr, "~> 5.1"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
 end
