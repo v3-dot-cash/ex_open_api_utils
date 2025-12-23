@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.9.0...v0.10.0) (2025-12-23)
+
+
+### Features
+
+* **tag:** add OpenAPI 3.2 tag hierarchy support ([e1c93be](https://github.com/v3-dot-cash/ex_open_api_utils/commit/e1c93be9308ab1804d272bf0f36342616e080d3f))
+* **tag:** add OpenAPI 3.2 tag hierarchy support ([e0c95b7](https://github.com/v3-dot-cash/ex_open_api_utils/commit/e0c95b7c8c9f161f9b37a66bb0298cdfadccad48))
+
+
+### Bug Fixes
+
+* credo compliance and CI configuration ([f27adac](https://github.com/v3-dot-cash/ex_open_api_utils/commit/f27adac23faaed89a4e5b70b4223199ebce943ee))
+
 ## [0.9.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.8.1...v0.9.0) (2025-12-22)
 
 
