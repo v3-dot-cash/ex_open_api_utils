@@ -1,5 +1,5 @@
 defmodule ExOpenApiUtils.SchemaDefinition do
-  defstruct title: nil, required: [], properties: [], description: "", tags: [], type: :object
+  defstruct title: nil, required: [], properties: [], description: "", tags: [], type: :object, nullable: nil
 
   @type t :: %__MODULE__{
           title: bitstring(),
@@ -7,7 +7,8 @@ defmodule ExOpenApiUtils.SchemaDefinition do
           properties: list(atom()),
           description: bitstring(),
           tags: list(String.t()),
-          type: atom()
+          type: atom(),
+          nullable: boolean() | nil
         }
   @enforce_keys [:title, :description]
 end

@@ -189,6 +189,7 @@ defmodule ExOpenApiUtils do
     tags = Keyword.get(opts, :tags, [])
     properties = Keyword.get(opts, :properties)
     type = Keyword.get(opts, :type, :object)
+    nullable = Keyword.get(opts, :nullable, nil)
 
     quote do
       all_properties = @open_api_properties |> Enum.map(& &1.key)
@@ -202,7 +203,8 @@ defmodule ExOpenApiUtils do
         title: unquote(title),
         required: unquote(required),
         description: unquote(description),
-        type: unquote(type)
+        type: unquote(type),
+        nullable: unquote(nullable)
       }
 
       Module.put_attribute(__MODULE__, :open_api_schemas, schema_definition)
@@ -272,19 +274,23 @@ defmodule ExOpenApiUtils do
         request_order =
           Enum.filter(schema_definition.properties, &(&1 in request_properties_keys))
 
-        body = %{
-          title: Inflex.camelize(title <> "Request"),
-          type: :object,
-          description: description <> " Request",
-          required: request_required_properties,
-          properties: request_properties_map,
-          tags: schema_definition.tags,
-          writeOnly: true,
-          example: request_example,
-          extensions: %{
-            "x-order" => request_order
+        body =
+          %{
+            title: Inflex.camelize(title <> "Request"),
+            type: :object,
+            description: description <> " Request",
+            required: request_required_properties,
+            properties: request_properties_map,
+            tags: schema_definition.tags,
+            writeOnly: true,
+            nullable: schema_definition.nullable,
+            example: request_example,
+            extensions: %{
+              "x-order" => request_order
+            }
           }
-        }
+          |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+          |> Map.new()
 
         request_module_contents =
           quote do
@@ -327,19 +333,23 @@ defmodule ExOpenApiUtils do
         response_order =
           Enum.filter(schema_definition.properties, &(&1 in response_properties_keys))
 
-        body = %{
-          title: Inflex.camelize(title <> "Response"),
-          type: schema_definition.type,
-          required: response_required_properties,
-          description: description,
-          properties: response_properties_map,
-          tags: schema_definition.tags,
-          readOnly: true,
-          example: response_example,
-          extensions: %{
-            "x-order" => response_order
+        body =
+          %{
+            title: Inflex.camelize(title <> "Response"),
+            type: schema_definition.type,
+            required: response_required_properties,
+            description: description,
+            properties: response_properties_map,
+            tags: schema_definition.tags,
+            readOnly: true,
+            nullable: schema_definition.nullable,
+            example: response_example,
+            extensions: %{
+              "x-order" => response_order
+            }
           }
-        }
+          |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+          |> Map.new()
 
         response_module_contents =
           quote do

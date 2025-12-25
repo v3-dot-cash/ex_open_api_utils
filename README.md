@@ -159,6 +159,96 @@ open_api_property(
 )
 ```
 
+### Use nullable for optional fields
+
+Mark fields as nullable when they can accept null values:
+
+```elixir
+# Optional field (not in required list, can be omitted or null)
+open_api_property(
+  key: :middle_name,
+  schema: %Schema{
+    type: :string,
+    nullable: true,
+    description: "Optional middle name"
+  }
+)
+
+# Required field that can be null (must be present, but can be null)
+open_api_property(
+  key: :nickname,
+  schema: %Schema{
+    type: :string,
+    nullable: true,
+    description: "Nickname (required field, but can be null)"
+  }
+)
+
+# Nullable with readOnly (optional server-generated field)
+open_api_property(
+  key: :external_id,
+  schema: %Schema{
+    type: :string,
+    format: :uuid,
+    nullable: true,
+    readOnly: true,
+    description: "External system ID (may not be set yet)"
+  }
+)
+
+# Nullable with writeOnly (optional input field)
+open_api_property(
+  key: :password,
+  schema: %Schema{
+    type: :string,
+    minLength: 8,
+    nullable: true,
+    writeOnly: true,
+    description: "Password (optional for updates)"
+  }
+)
+
+```
+
+**Schema-level nullable:**
+
+Mark entire schemas as nullable in their definition:
+
+```elixir
+# In your UIParameters module:
+defmodule MyApp.UIParameters do
+  use ExOpenApiUtils
+
+  open_api_property(
+    key: :theme,
+    schema: %Schema{type: :string, description: "UI theme"}
+  )
+
+  schema "ui_parameters" do
+    field :theme, :string
+  end
+
+  open_api_schema(
+    title: "UIParameters",
+    description: "UI configuration parameters",
+    properties: [:theme],
+    nullable: true  # The entire schema can be null
+  )
+end
+
+# Then reference it simply:
+open_api_property(
+  schema: MyApp.OpenApiSchema.UIParametersResponse,
+  key: :ui_parameters
+)
+```
+
+**Required vs Nullable:**
+- `required: [:field]` - Field must be present in the payload
+- `nullable: true` - Field can have a null value
+- `required: [:field]` + `nullable: true` - Field must be present but can be null
+- Not in required + `nullable: true` - Field can be omitted or explicitly set to null
+
 ### Use enum_schema for TypeScript enums
 
 ```elixir
