@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.10.0...v0.11.0) (2025-12-25)
+
+
+### Features
+
+* **schema:** add nullable field support to schema generation ([91adb56](https://github.com/v3-dot-cash/ex_open_api_utils/commit/91adb56c82fb3b0e4a7769b177d4c625a1a06d57)), closes [#10](https://github.com/v3-dot-cash/ex_open_api_utils/issues/10)
+
 ## [0.10.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.9.0...v0.10.0) (2025-12-23)
 
 
