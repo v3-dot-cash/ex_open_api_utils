@@ -382,6 +382,10 @@ defmodule ExOpenApiUtils do
     !!readOnly
   end
 
+  def is_readOnly?(%OpenApiSpex.Reference{"$ref": ref}) do
+    String.ends_with?(ref, "Response")
+  end
+
   def is_readOnly?(module) do
     apply(module, :schema, [])
     |> is_readOnly?()
@@ -389,6 +393,10 @@ defmodule ExOpenApiUtils do
 
   def is_writeOnly?(%OpenApiSpex.Schema{writeOnly: writeOnly}) do
     !!writeOnly
+  end
+
+  def is_writeOnly?(%OpenApiSpex.Reference{"$ref": ref}) do
+    String.ends_with?(ref, "Request")
   end
 
   def is_writeOnly?(module) do
