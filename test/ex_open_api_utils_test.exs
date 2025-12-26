@@ -2,6 +2,42 @@ defmodule ExOpenApiUtilsTest do
   use ExUnit.Case
   doctest ExOpenApiUtils
 
+  alias OpenApiSpex.Reference
+
+  describe "is_readOnly?/1 with Reference" do
+    test "returns true for Reference ending with Response" do
+      ref = %Reference{"$ref": "#/components/schemas/UserResponse"}
+      assert ExOpenApiUtils.is_readOnly?(ref) == true
+    end
+
+    test "returns false for Reference ending with Request" do
+      ref = %Reference{"$ref": "#/components/schemas/UserRequest"}
+      assert ExOpenApiUtils.is_readOnly?(ref) == false
+    end
+
+    test "returns false for Reference with other suffix" do
+      ref = %Reference{"$ref": "#/components/schemas/User"}
+      assert ExOpenApiUtils.is_readOnly?(ref) == false
+    end
+  end
+
+  describe "is_writeOnly?/1 with Reference" do
+    test "returns true for Reference ending with Request" do
+      ref = %Reference{"$ref": "#/components/schemas/UserRequest"}
+      assert ExOpenApiUtils.is_writeOnly?(ref) == true
+    end
+
+    test "returns false for Reference ending with Response" do
+      ref = %Reference{"$ref": "#/components/schemas/UserResponse"}
+      assert ExOpenApiUtils.is_writeOnly?(ref) == false
+    end
+
+    test "returns false for Reference with other suffix" do
+      ref = %Reference{"$ref": "#/components/schemas/User"}
+      assert ExOpenApiUtils.is_writeOnly?(ref) == false
+    end
+  end
+
   describe "x-order property generation" do
     test "Request schema should have x-order extension property" do
       schema = ExOpenApiUtilsTest.OpenApiSchema.TestSchemaRequest.schema()
