@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.1](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.11.0...v0.11.1) (2025-12-26)
+
+
+### Bug Fixes
+
+* support OpenApiSpex.Reference in is_readOnly?/is_writeOnly? ([abbaec2](https://github.com/v3-dot-cash/ex_open_api_utils/commit/abbaec2a033cb3c01caa26033eb10725691e91ca))
+* support OpenApiSpex.Reference in is_readOnly?/is_writeOnly? ([05d4743](https://github.com/v3-dot-cash/ex_open_api_utils/commit/05d474398b0d7e8781ddc2c52f5dafbafa423ba5)), closes [#13](https://github.com/v3-dot-cash/ex_open_api_utils/issues/13)
+
 ## [0.11.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.10.0...v0.11.0) (2025-12-25)
 
 
