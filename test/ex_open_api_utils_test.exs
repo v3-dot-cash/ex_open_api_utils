@@ -38,6 +38,48 @@ defmodule ExOpenApiUtilsTest do
     end
   end
 
+  describe "schema type field" do
+    test "Request schema always has type: :object" do
+      schema = ExOpenApiUtilsTest.OpenApiSchema.TestSchemaRequest.schema()
+      assert schema.type == :object
+    end
+
+    test "Response schema always has type: :object" do
+      schema = ExOpenApiUtilsTest.OpenApiSchema.TestSchemaResponse.schema()
+      assert schema.type == :object
+    end
+
+    test "Nullable Response schema has both type: :object and nullable: true" do
+      schema = ExOpenApiUtilsTest.OpenApiSchema.NullableSchemaResponse.schema()
+      assert schema.type == :object
+      assert schema.nullable == true
+    end
+
+    test "Nullable Request schema has both type: :object and nullable: true" do
+      schema = ExOpenApiUtilsTest.OpenApiSchema.NullableSchemaRequest.schema()
+      assert schema.type == :object
+      assert schema.nullable == true
+    end
+
+    test "Nullable schema serializes with type field in JSON" do
+      schema = ExOpenApiUtilsTest.OpenApiSchema.NullableSchemaResponse.schema()
+      # Use OpenApiSpex JSON encoder
+      json_map = OpenApiSpex.OpenApi.to_map(schema)
+
+      assert json_map["type"] == "object"
+      assert json_map["nullable"] == true
+    end
+
+    test "Nullable schema serializes with type field in YAML" do
+      schema = ExOpenApiUtilsTest.OpenApiSchema.NullableSchemaResponse.schema()
+      json_map = OpenApiSpex.OpenApi.to_map(schema)
+      {:ok, yaml} = Ymlr.document(json_map)
+
+      assert yaml =~ "type: object"
+      assert yaml =~ "nullable: true"
+    end
+  end
+
   describe "x-order property generation" do
     test "Request schema should have x-order extension property" do
       schema = ExOpenApiUtilsTest.OpenApiSchema.TestSchemaRequest.schema()
