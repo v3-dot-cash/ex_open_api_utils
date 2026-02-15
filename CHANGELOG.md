@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.2](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.11.1...v0.11.2) (2026-02-15)
+
+
+### Bug Fixes
+
+* **deps:** make ex_doc a dev-only dependency ([fb168db](https://github.com/v3-dot-cash/ex_open_api_utils/commit/fb168dbf5c3f8b27d55457217c23ea2822bf6f5d))
+* **deps:** make ex_doc a dev-only dependency ([8a89461](https://github.com/v3-dot-cash/ex_open_api_utils/commit/8a8946188b840c281bba2fe1672097d2b94036cc)), closes [#18](https://github.com/v3-dot-cash/ex_open_api_utils/issues/18)
+
 ## [0.11.1](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.11.0...v0.11.1) (2025-12-26)
 
 
