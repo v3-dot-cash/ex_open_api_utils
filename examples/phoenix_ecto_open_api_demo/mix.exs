@@ -42,6 +42,7 @@ defmodule PhoenixEctoOpenApiDemo.MixProject do
       {:telemetry_poller, "~> 1.3"},
       {:jason, "~> 1.4"},
       {:plug_cowboy, "~> 2.7"},
+      {:polymorphic_embed, "~> 5.0"},
       {:ex_open_api_utils, path: "../../"}
     ]
   end

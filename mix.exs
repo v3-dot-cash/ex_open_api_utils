@@ -32,6 +32,7 @@ defmodule ExOpenApiUtils.MixProject do
       {:ecto, "~> 3.13"},
       {:inflex, "~> 2.1"},
       {:ymlr, "~> 5.1"},
+      {:polymorphic_embed, "~> 5.0", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
