@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.11.2...v0.12.0) (2026-04-10)
+
+
+### Features
+
+* **deps:** add polymorphic_embed as test-only dependency ([6e2217e](https://github.com/v3-dot-cash/ex_open_api_utils/commit/6e2217e3d56c6f705cbcbf98903bc0e79b11fa91)), closes [#21](https://github.com/v3-dot-cash/ex_open_api_utils/issues/21)
+* **polymorphic:** add Polymorphic.one_of helper ([b495829](https://github.com/v3-dot-cash/ex_open_api_utils/commit/b495829427a4e8a6d3824706cac6bb06e4b4e22b)), closes [#21](https://github.com/v3-dot-cash/ex_open_api_utils/issues/21)
+
 ## [0.11.2](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.11.1...v0.11.2) (2026-02-15)
 
 
