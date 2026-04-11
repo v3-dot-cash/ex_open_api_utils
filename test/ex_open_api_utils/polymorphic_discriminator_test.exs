@@ -103,7 +103,8 @@ defmodule ExOpenApiUtils.PolymorphicDiscriminatorTest do
     test ":channel discriminator uses channel_type with module-valued mapping", %{
       channel: channel
     } do
-      assert %Discriminator{propertyName: "channel_type", mapping: mapping} = channel.discriminator
+      assert %Discriminator{propertyName: "channel_type", mapping: mapping} =
+               channel.discriminator
 
       assert mapping == %{
                "email" => NotificationEmailChannelRequest,
@@ -140,7 +141,8 @@ defmodule ExOpenApiUtils.PolymorphicDiscriminatorTest do
     test ":channel discriminator mapping uses parent-contextual *Response siblings", %{
       channel: channel
     } do
-      assert %Discriminator{propertyName: "channel_type", mapping: mapping} = channel.discriminator
+      assert %Discriminator{propertyName: "channel_type", mapping: mapping} =
+               channel.discriminator
 
       assert mapping == %{
                "email" => NotificationEmailChannelResponse,

@@ -570,7 +570,11 @@ defmodule ExOpenApiUtils do
     end)
   end
 
-  defp filter_schema_properties(all_properties, %SchemaDefinition{} = schema_definition, :response) do
+  defp filter_schema_properties(
+         all_properties,
+         %SchemaDefinition{} = schema_definition,
+         :response
+       ) do
     Enum.filter(all_properties, fn %Property{} = property ->
       property.key in schema_definition.properties and not is_writeOnly?(property.schema)
     end)
@@ -837,7 +841,11 @@ defmodule ExOpenApiUtils do
   # that includes the discriminator field as a real atom key. No
   # `@open_api_properties` mutation — that's handled separately by
   # `__synthesize_polymorphic_properties__/3`.
-  def __generate_parent_contextual_variants__(parent_module, polymorphic_decls, polymorphic_variants)
+  def __generate_parent_contextual_variants__(
+        parent_module,
+        polymorphic_decls,
+        polymorphic_variants
+      )
       when is_atom(parent_module) and is_list(polymorphic_decls) and
              is_map(polymorphic_variants) and map_size(polymorphic_variants) > 0 do
     for decl <- polymorphic_decls,
@@ -861,8 +869,12 @@ defmodule ExOpenApiUtils do
     :ok
   end
 
-  def __generate_parent_contextual_variants__(_parent_module, _polymorphic_decls, _polymorphic_variants),
-    do: :ok
+  def __generate_parent_contextual_variants__(
+        _parent_module,
+        _polymorphic_decls,
+        _polymorphic_variants
+      ),
+      do: :ok
 
   defp create_parent_contextual_sibling!(
          original_submodule,
