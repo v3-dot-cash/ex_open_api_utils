@@ -1,6 +1,6 @@
 defmodule PhoenixEctoOpenApiDemo.BusinessContext.Business do
   use ExOpenApiUtils
-  alias PhoenixEctoOpenApiDemo.TenantContext.Business
+  alias PhoenixEctoOpenApiDemo.TenantContext.Tenant
 
   @primary_key {:id, :binary_id, autogenerate: true}
   open_api_property(

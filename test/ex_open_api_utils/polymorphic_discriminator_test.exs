@@ -820,4 +820,84 @@ defmodule ExOpenApiUtils.PolymorphicDiscriminatorTest do
       end
     end
   end
+
+  describe "discriminator propertyName atom persistence (GH-27 regression lock)" do
+    # Bytecode-level assertion: walk the `abstract_code` chunk of a compiled
+    # Mapper impl's BEAM binary and check that the discriminator
+    # propertyName atom is present as an `{:atom, line, name}` literal.
+    #
+    # A runtime `Cast.cast/3` smoke test cannot catch this bug because
+    # `mix test` compiles and runs in the same BEAM, so any atom created
+    # via compile-time `String.to_atom/1` stays hot in the runtime atom
+    # table.  Nor can a check against the `:atoms` chunk (`AtU8`) — atoms
+    # that live only inside the literal pool (`LitT`) are created by the
+    # BEAM loader when the literal pool is deserialized, and they do not
+    # necessarily appear in `AtU8`.  The `abstract_code` chunk is the
+    # canonical pre-optimization AST the Elixir compiler emits and
+    # contains every literal atom the compiled module will materialize at
+    # load time.
+    #
+    # Test support files are loaded via `Code.compile_file/1` in
+    # `test_helper.exs` — the resulting binaries are stashed in
+    # `:persistent_term` so these tests can read them without the file
+    # being written to disk.
+
+    defp literal_atoms_in(module) do
+      bin = ExOpenApiUtilsTest.CompiledFixtures.beam_binary(module)
+      assert is_binary(bin), "no stashed BEAM binary for #{inspect(module)}"
+
+      {:ok, {_, [{:abstract_code, {:raw_abstract_v1, forms}}]}} =
+        :beam_lib.chunks(bin, [:abstract_code])
+
+      collect_atoms(forms, MapSet.new())
+    end
+
+    defp collect_atoms({:atom, _line, name}, acc) when is_atom(name) do
+      MapSet.put(acc, name)
+    end
+
+    defp collect_atoms(tuple, acc) when is_tuple(tuple) do
+      tuple
+      |> Tuple.to_list()
+      |> Enum.reduce(acc, &collect_atoms/2)
+    end
+
+    defp collect_atoms(list, acc) when is_list(list) do
+      Enum.reduce(list, acc, &collect_atoms/2)
+    end
+
+    defp collect_atoms(_, acc), do: acc
+
+    test "NotificationRequest Mapper impl .beam contains :object_type" do
+      atoms =
+        literal_atoms_in(
+          ExOpenApiUtils.Mapper.ExOpenApiUtilsTest.OpenApiSchema.NotificationRequest
+        )
+
+      assert :object_type in atoms
+    end
+
+    test "NotificationResponse Mapper impl .beam contains :object_type" do
+      atoms =
+        literal_atoms_in(
+          ExOpenApiUtils.Mapper.ExOpenApiUtilsTest.OpenApiSchema.NotificationResponse
+        )
+
+      assert :object_type in atoms
+    end
+
+    test "AnalyticsRequest Mapper impl .beam contains :kind (cross-name fixture)" do
+      atoms =
+        literal_atoms_in(ExOpenApiUtils.Mapper.ExOpenApiUtilsTest.OpenApiSchema.AnalyticsRequest)
+
+      assert :kind in atoms
+    end
+
+    test "AnalyticsResponse Mapper impl .beam contains :kind" do
+      atoms =
+        literal_atoms_in(ExOpenApiUtils.Mapper.ExOpenApiUtilsTest.OpenApiSchema.AnalyticsResponse)
+
+      assert :kind in atoms
+    end
+  end
 end

@@ -6,8 +6,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.ApiSpec do
     OpenApi,
     Paths,
     SecurityScheme,
-    Server,
-    Tag
+    Server
   }
 
   @behaviour OpenApi
