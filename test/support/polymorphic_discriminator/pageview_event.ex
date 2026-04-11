@@ -1,11 +1,10 @@
-defmodule ExOpenApiUtilsTest.Polymorphic.CustomEvent.PageView do
+defmodule ExOpenApiUtilsTest.PolymorphicDiscriminator.PageViewEvent do
   @moduledoc false
   use ExOpenApiUtils
-  alias OpenApiSpex.Schema
 
   open_api_property(
-    schema: %Schema{type: :string, description: "The viewed page URL", format: :uri},
-    key: :url
+    key: :url,
+    schema: %Schema{type: :string, format: :uri, example: "https://example.com/"}
   )
 
   embedded_schema do
@@ -21,7 +20,7 @@ defmodule ExOpenApiUtilsTest.Polymorphic.CustomEvent.PageView do
 
   def changeset(schema, attrs) do
     schema
-    |> Ecto.Changeset.cast(attrs, [:url])
-    |> Ecto.Changeset.validate_required([:url])
+    |> cast(attrs, [:url])
+    |> validate_required([:url])
   end
 end

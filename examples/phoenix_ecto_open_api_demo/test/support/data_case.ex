@@ -37,7 +37,9 @@ defmodule PhoenixEctoOpenApiDemo.DataCase do
   """
   def setup_sandbox(tags) do
     pid =
-      Ecto.Adapters.SQL.Sandbox.start_owner!(PhoenixEctoOpenApiDemo.Repo, shared: not tags[:async])
+      Ecto.Adapters.SQL.Sandbox.start_owner!(PhoenixEctoOpenApiDemo.Repo,
+        shared: not tags[:async]
+      )
 
     on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
   end

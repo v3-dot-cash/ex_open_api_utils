@@ -1,11 +1,10 @@
-defmodule ExOpenApiUtilsTest.Polymorphic.CustomEvent.Click do
+defmodule ExOpenApiUtilsTest.PolymorphicDiscriminator.ClickEvent do
   @moduledoc false
   use ExOpenApiUtils
-  alias OpenApiSpex.Schema
 
   open_api_property(
-    schema: %Schema{type: :string, description: "Selector of clicked element"},
-    key: :selector
+    key: :selector,
+    schema: %Schema{type: :string, example: "#submit-btn"}
   )
 
   embedded_schema do
@@ -21,7 +20,7 @@ defmodule ExOpenApiUtilsTest.Polymorphic.CustomEvent.Click do
 
   def changeset(schema, attrs) do
     schema
-    |> Ecto.Changeset.cast(attrs, [:selector])
-    |> Ecto.Changeset.validate_required([:selector])
+    |> cast(attrs, [:selector])
+    |> validate_required([:selector])
   end
 end
