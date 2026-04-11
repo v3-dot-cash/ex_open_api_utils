@@ -1,0 +1,17 @@
+{
+  "name": "phoenix-ecto-open-api-demo-integration-tests",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Local vitest HTTP integration tier for the phoenix_ecto_open_api_demo example app. Runs against a live Phoenix + tmpfs Postgres pair bounced by the Makefile. Not wired into CI.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@hey-api/client-fetch": "0.13.1",
+    "@hey-api/openapi-ts": "0.95.0",
+    "typescript": "6.0.2",
+    "vitest": "4.1.4"
+  }
+}
