@@ -92,7 +92,7 @@ defmodule PhoenixEctoOpenApiDemo.NotificationContext.Notification do
   schema "notifications" do
     field :subject, :string
 
-    polymorphic_embeds_one :channel,
+    polymorphic_embeds_one(:channel,
       types: [
         email: Email,
         sms: Sms,
@@ -101,6 +101,7 @@ defmodule PhoenixEctoOpenApiDemo.NotificationContext.Notification do
       type_field_name: :__type__,
       on_type_not_found: :raise,
       on_replace: :update
+    )
 
     timestamps()
   end
