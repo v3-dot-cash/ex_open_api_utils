@@ -6,19 +6,24 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationController do
 
     * `NotificationRequest` / `NotificationResponse` are the auto-generated
       `use ExOpenApiUtils` submodules. Their `:channel` property is a
-      `oneOf + discriminator` schema pointing at the direction-specific
-      variant submodules (`EmailRequest`/`EmailResponse`, etc.).
+      `oneOf + discriminator` schema pointing at the parent-contextual
+      variant submodules (`NotificationEmailRequest` /
+      `NotificationEmailResponse`, etc.) that GH-30's
+      `open_api_polymorphic_property/1` macro generates via allOf
+      composition. These siblings carry the discriminator as a real
+      defstruct field so it survives the full round-trip through
+      `Kernel.struct/2` unchanged.
     * `OpenApiSpex.Plug.CastAndValidate` casts the request body into a
-      typed `%NotificationRequest{channel: %EmailRequest{...}}` struct and
-      attaches it to `conn.body_params`.
-    * The `:channel` field on the inbound struct has no discriminator field
-      itself — `ExOpenApiUtils.Changeset.cast/3` walks the struct via the
-      Mapper, which injects the discriminator value (atom form,
-      `:__type__ => "email"`) at the parent level before handing the
-      flattened params to `Ecto.Changeset.cast` and
-      `cast_polymorphic_embed/3`.
+      typed `%NotificationRequest{channel: %NotificationEmailRequest{...}}`
+      struct and attaches it to `conn.body_params`.
+    * The `:channel` field on the inbound struct already has
+      `:channel_type` as a real field — `ExOpenApiUtils.Changeset.cast/3`
+      walks the struct via the Mapper, which bridges the wire
+      discriminator ("channel_type") to the Ecto `type_field_name`
+      (`:__type__`) before handing the flattened params to
+      `Ecto.Changeset.cast` and `cast_polymorphic_embed/3`.
     * `NotificationJSON` renders via `ExOpenApiUtils.Mapper.to_map/1`, which
-      injects the wire form (`"object_type" => "email"`) for the response.
+      injects the wire form (`"channel_type" => "email"`) for the response.
   """
   use PhoenixEctoOpenApiDemoWeb, :controller
 

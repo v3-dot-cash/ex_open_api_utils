@@ -91,12 +91,49 @@ defmodule ExOpenApiUtils do
   ## Polymorphic embeds
 
   `ex_open_api_utils` bridges `polymorphic_embed`'s Ecto side to OpenApiSpex's
-  `oneOf + discriminator` composition. The bridge is two parts: write two
-  `open_api_property` calls for the polymorphic field (one `writeOnly` with
-  `*Request` variant submodules, one `readOnly` with `*Response` variant
-  submodules), then declare the bridge with `polymorphic_embed_discriminator/1`.
+  `oneOf + discriminator` composition. Declare the bridge with a single
+  `open_api_polymorphic_property/1` call alongside the matching
+  `polymorphic_embeds_one`:
 
-  See `polymorphic_embed_discriminator/1` for the full shape.
+      defmodule MyApp.Notification do
+        use ExOpenApiUtils
+
+        open_api_property(key: :subject, schema: %Schema{type: :string})
+
+        open_api_polymorphic_property(
+          key: :channel,
+          type_field_name: :__type__,
+          open_api_discriminator_property: "channel_type",
+          variants: [
+            email:   EmailChannel,
+            sms:     SmsChannel,
+            webhook: WebhookChannel
+          ]
+        )
+
+        schema "notifications" do
+          field :subject, :string
+          polymorphic_embeds_one :channel,
+            types: [email: EmailChannel, sms: SmsChannel, webhook: WebhookChannel],
+            type_field_name: :__type__,
+            on_type_not_found: :raise,
+            on_replace: :update
+        end
+
+        open_api_schema(title: "Notification", ...)
+      end
+
+  The library generates one parent-contextual variant submodule per
+  `(parent, variant, direction)` triple at the parent's `__before_compile__`
+  time via `Module.create` with an `allOf` composition body. The generated
+  siblings (e.g. `NotificationEmailChannelRequest` /
+  `NotificationEmailChannelResponse`) carry the discriminator as a real
+  `defstruct` field, so `Kernel.struct/2` preserves it through the full
+  cast pipeline — closing GH-30, where the pre-fix variant submodule's
+  defstruct was built without the discriminator and silently dropped it
+  at `Cast.Object.to_struct/1`.
+
+  See `open_api_polymorphic_property/1` for the full option list.
   """
   alias ExOpenApiUtils.Property
   alias ExOpenApiUtils.SchemaDefinition
