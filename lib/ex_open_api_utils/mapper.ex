@@ -134,7 +134,8 @@ defmodule ExOpenApiUtils.Mapper.Polymorphic do
       :error ->
         val
 
-      {:ok, %{variant_map: variant_map, discriminator_string: disc_str, type_field_atom: type_atom}} ->
+      {:ok,
+       %{variant_map: variant_map, discriminator_string: disc_str, type_field_atom: type_atom}} ->
         with %struct_mod{} <- raw_val,
              {:ok, wire_value} <- Map.fetch(variant_map, struct_mod),
              true <- is_map(val) do

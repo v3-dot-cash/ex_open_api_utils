@@ -138,9 +138,7 @@ defmodule ExOpenApiUtils do
       Module.register_attribute(__MODULE__, :open_api_properties, accumulate: true)
       Module.register_attribute(__MODULE__, :open_api_schemas, accumulate: true)
 
-      Module.register_attribute(__MODULE__, :polymorphic_embed_declarations,
-        accumulate: true
-      )
+      Module.register_attribute(__MODULE__, :polymorphic_embed_declarations, accumulate: true)
 
       @before_compile ExOpenApiUtils
     end
@@ -288,10 +286,7 @@ defmodule ExOpenApiUtils do
   defmacro __before_compile__(%{module: module}) do
     quote do
       require Protocol
-      alias OpenApiSpex.Schema
       alias ExOpenApiUtils.SchemaDefinition
-
-      [root_module | _] = Module.split(unquote(module))
 
       polymorphic_variants =
         ExOpenApiUtils.__build_polymorphic_variants__(
@@ -302,62 +297,22 @@ defmodule ExOpenApiUtils do
         )
 
       for %SchemaDefinition{} = schema_definition <- @open_api_schemas do
-        title = schema_definition.title
-        description = schema_definition.description
+        {request_module_name, request_body, request_properties} =
+          ExOpenApiUtils.__submodule_spec__(
+            unquote(module),
+            schema_definition,
+            @open_api_properties,
+            :request
+          )
 
-        request_module_name = Module.concat([root_module, "OpenApiSchema", "#{title}Request"])
-
-        request_properties =
-          Enum.filter(@open_api_properties, fn %Property{} = property ->
-            property.key in schema_definition.properties &&
-              !ExOpenApiUtils.is_readOnly?(property.schema)
-          end)
-
-        request_properties_map =
-          Enum.reduce(request_properties, %{}, fn %Property{} = property, acc ->
-            Map.put(acc, property.key, property.schema)
-          end)
-
-        request_example =
-          Enum.reduce(request_properties, %{}, fn %Property{} = property, acc ->
-            example = OpenApiSpex.Schema.example(property.schema)
-            Map.put(acc, Atom.to_string(property.key), example)
-          end)
-
-        request_properties_keys = Map.keys(request_properties_map)
-
-        request_required_properties =
-          Enum.filter(schema_definition.required, &(&1 in request_properties_keys))
-
-        request_order =
-          Enum.filter(schema_definition.properties, &(&1 in request_properties_keys))
-
-        body =
-          %{
-            title: Inflex.camelize(title <> "Request"),
-            type: :object,
-            description: description <> " Request",
-            required: request_required_properties,
-            properties: request_properties_map,
-            tags: schema_definition.tags,
-            writeOnly: true,
-            nullable: schema_definition.nullable,
-            example: request_example,
-            extensions: %{
-              "x-order" => request_order
-            }
-          }
-          |> Enum.reject(fn {_k, v} -> is_nil(v) end)
-          |> Map.new()
-
-        request_module_contents =
+        Module.create(
+          request_module_name,
           quote do
             require OpenApiSpex
-
-            OpenApiSpex.schema(unquote(Macro.escape(body)))
-          end
-
-        Module.create(request_module_name, request_module_contents, Macro.Env.location(__ENV__))
+            OpenApiSpex.schema(unquote(Macro.escape(request_body)))
+          end,
+          Macro.Env.location(__ENV__)
+        )
 
         Protocol.derive(ExOpenApiUtils.Mapper, request_module_name,
           property_attrs: request_properties,
@@ -365,59 +320,22 @@ defmodule ExOpenApiUtils do
           polymorphic_variants: polymorphic_variants
         )
 
-        response_module_name = Module.concat([root_module, "OpenApiSchema", "#{title}Response"])
+        {response_module_name, response_body, response_properties} =
+          ExOpenApiUtils.__submodule_spec__(
+            unquote(module),
+            schema_definition,
+            @open_api_properties,
+            :response
+          )
 
-        response_properties =
-          Enum.filter(@open_api_properties, fn %Property{} = property ->
-            property.key in schema_definition.properties &&
-              !ExOpenApiUtils.is_writeOnly?(property.schema)
-          end)
-
-        response_properties_map =
-          Enum.reduce(response_properties, %{}, fn %Property{} = property, acc ->
-            Map.put(acc, property.key, property.schema)
-          end)
-
-        response_example =
-          Enum.reduce(response_properties, %{}, fn %Property{} = property, acc ->
-            example = OpenApiSpex.Schema.example(property.schema)
-            Map.put(acc, Atom.to_string(property.key), example)
-          end)
-
-        response_properties_keys = Map.keys(response_properties_map)
-
-        response_required_properties =
-          Enum.filter(schema_definition.required, &(&1 in response_properties_keys))
-
-        response_order =
-          Enum.filter(schema_definition.properties, &(&1 in response_properties_keys))
-
-        body =
-          %{
-            title: Inflex.camelize(title <> "Response"),
-            type: schema_definition.type,
-            required: response_required_properties,
-            description: description,
-            properties: response_properties_map,
-            tags: schema_definition.tags,
-            readOnly: true,
-            nullable: schema_definition.nullable,
-            example: response_example,
-            extensions: %{
-              "x-order" => response_order
-            }
-          }
-          |> Enum.reject(fn {_k, v} -> is_nil(v) end)
-          |> Map.new()
-
-        response_module_contents =
+        Module.create(
+          response_module_name,
           quote do
             require OpenApiSpex
-
-            OpenApiSpex.schema(unquote(Macro.escape(body)))
-          end
-
-        Module.create(response_module_name, response_module_contents, Macro.Env.location(__ENV__))
+            OpenApiSpex.schema(unquote(Macro.escape(response_body)))
+          end,
+          Macro.Env.location(__ENV__)
+        )
 
         Protocol.derive(ExOpenApiUtils.Mapper, response_module_name,
           property_attrs: response_properties,
@@ -445,6 +363,77 @@ defmodule ExOpenApiUtils do
       @doc false
       def __ex_open_api_utils_schemas__, do: @__ex_open_api_utils_schemas_index__
     end
+  end
+
+  @doc false
+  # Builds the `{module_name, body_map, filtered_properties}` triple for a
+  # direction-specific sub-module (Request or Response). Extracted out of the
+  # `__before_compile__` quote block to keep it small — the Module.create and
+  # Protocol.derive calls have to stay inside the quote (Protocol.derive is a
+  # macro), but all the filtering and body-assembly is plain data work.
+  def __submodule_spec__(parent_module, schema_definition, all_properties, direction) do
+    [root_module | _] = Module.split(parent_module)
+    title = schema_definition.title
+    description = schema_definition.description
+
+    {suffix, reject_fn, body_extras} =
+      case direction do
+        :request ->
+          {"Request", &is_readOnly?(&1.schema),
+           %{
+             description: description <> " Request",
+             type: :object,
+             writeOnly: true
+           }}
+
+        :response ->
+          {"Response", &is_writeOnly?(&1.schema),
+           %{
+             description: description,
+             type: schema_definition.type,
+             readOnly: true
+           }}
+      end
+
+    module_name = Module.concat([root_module, "OpenApiSchema", "#{title}#{suffix}"])
+
+    properties =
+      Enum.filter(all_properties, fn %Property{} = property ->
+        property.key in schema_definition.properties && !reject_fn.(property)
+      end)
+
+    properties_map =
+      Enum.reduce(properties, %{}, fn %Property{} = property, acc ->
+        Map.put(acc, property.key, property.schema)
+      end)
+
+    example =
+      Enum.reduce(properties, %{}, fn %Property{} = property, acc ->
+        Map.put(acc, Atom.to_string(property.key), OpenApiSpex.Schema.example(property.schema))
+      end)
+
+    properties_keys = Map.keys(properties_map)
+
+    required =
+      Enum.filter(schema_definition.required, &(&1 in properties_keys))
+
+    order =
+      Enum.filter(schema_definition.properties, &(&1 in properties_keys))
+
+    body =
+      Map.merge(body_extras, %{
+        title: Inflex.camelize(title <> suffix),
+        required: required,
+        properties: properties_map,
+        tags: schema_definition.tags,
+        nullable: schema_definition.nullable,
+        example: example,
+        extensions: %{"x-order" => order}
+      })
+      |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+      |> Map.new()
+
+    {module_name, body, properties}
   end
 
   @doc false
@@ -729,7 +718,9 @@ defmodule ExOpenApiUtils do
 
       {expected_request, expected_response} =
         case variant_schemas do
-          [%{request_module: req, response_module: res} | _] -> {req, res}
+          [%{request_module: req, response_module: res} | _] ->
+            {req, res}
+
           _ ->
             raise CompileError,
               description:

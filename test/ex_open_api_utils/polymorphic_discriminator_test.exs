@@ -354,7 +354,9 @@ defmodule ExOpenApiUtils.PolymorphicDiscriminatorTest do
 
       changeset = Notification.changeset(%Notification{}, request)
       assert changeset.valid?
-      assert %EmailChannel{to: "buyer@example.com"} = Ecto.Changeset.get_change(changeset, :channel)
+
+      assert %EmailChannel{to: "buyer@example.com"} =
+               Ecto.Changeset.get_change(changeset, :channel)
     end
 
     test "sms: wire JSON -> Cast -> shadowed cast -> %SmsChannel{}" do
@@ -370,6 +372,7 @@ defmodule ExOpenApiUtils.PolymorphicDiscriminatorTest do
       assert {:ok, request} = cast_request(payload)
       changeset = Notification.changeset(%Notification{}, request)
       assert changeset.valid?
+
       assert %SmsChannel{phone_number: "+15551234567"} =
                Ecto.Changeset.get_change(changeset, :channel)
     end
@@ -444,6 +447,7 @@ defmodule ExOpenApiUtils.PolymorphicDiscriminatorTest do
       assert {:ok, request} = cast_request(payload, "AnalyticsRequest")
       changeset = Analytics.changeset(%Analytics{}, request)
       assert changeset.valid?
+
       assert %PageViewEvent{url: "https://example.com/"} =
                Ecto.Changeset.get_change(changeset, :event)
     end
