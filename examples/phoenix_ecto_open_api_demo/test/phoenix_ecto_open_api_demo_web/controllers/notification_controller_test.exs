@@ -528,4 +528,66 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       end
     end
   end
+
+  describe "discriminator atom persistence (GH-27 regression lock, Phoenix flow)" do
+    # Bytecode-level assertion: walk the `abstract_code` chunk of the
+    # compiled Mapper impl's .beam and verify that `:object_type` is
+    # present as an `{:atom, line, name}` literal.  This is the canonical
+    # pre-optimization AST emitted by the Elixir compiler — if the atom
+    # is anywhere in the compiled module, it will show up here.
+    #
+    # A simple check against the `:atoms` chunk (`AtU8`) would miss atoms
+    # that live only in the literal pool (`LitT`), which is where
+    # `Macro.escape`-d compile-time maps end up.  The BEAM loader
+    # materializes those atoms at module-load time regardless of AtU8
+    # membership, so the abstract_code walk is both broader and stricter.
+    #
+    # The example app compiles its test support to real .beam files via
+    # `elixirc_paths(:test) -> ["lib", "test/support"]`, so `:code.which/1`
+    # returns an on-disk path and `:beam_lib.chunks/2` reads it directly.
+
+    defp collect_atoms({:atom, _line, name}, acc) when is_atom(name) do
+      MapSet.put(acc, name)
+    end
+
+    defp collect_atoms(tuple, acc) when is_tuple(tuple) do
+      tuple
+      |> Tuple.to_list()
+      |> Enum.reduce(acc, &collect_atoms/2)
+    end
+
+    defp collect_atoms(list, acc) when is_list(list) do
+      Enum.reduce(list, acc, &collect_atoms/2)
+    end
+
+    defp collect_atoms(_, acc), do: acc
+
+    defp literal_atoms_in(module) do
+      beam_path = :code.which(module)
+      refute beam_path in [:non_existing, :preloaded, :cover_compiled]
+
+      {:ok, {_, [{:abstract_code, {:raw_abstract_v1, forms}}]}} =
+        :beam_lib.chunks(beam_path, [:abstract_code])
+
+      collect_atoms(forms, MapSet.new())
+    end
+
+    test "NotificationRequest Mapper impl .beam contains :object_type" do
+      atoms =
+        literal_atoms_in(
+          ExOpenApiUtils.Mapper.PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationRequest
+        )
+
+      assert :object_type in atoms
+    end
+
+    test "NotificationResponse Mapper impl .beam contains :object_type" do
+      atoms =
+        literal_atoms_in(
+          ExOpenApiUtils.Mapper.PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationResponse
+        )
+
+      assert :object_type in atoms
+    end
+  end
 end

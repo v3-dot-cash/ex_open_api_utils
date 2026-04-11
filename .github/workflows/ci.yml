@@ -2,21 +2,71 @@ name: CI
 
 on:
   push:
-    branches: [main]
   pull_request:
     branches: [main]
 
+env:
+  ELIXIR_VERSION: "1.18.3"
+  OTP_VERSION: "27.3"
+
 jobs:
-  test:
+  library:
+    name: Library Tests
     runs-on: ubuntu-latest
-    name: Test (OTP ${{ matrix.otp }} / Elixir ${{ matrix.elixir }})
-    strategy:
-      matrix:
-        otp: ["27.3"]
-        elixir: ["1.18.3"]
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-library-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-library-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile dependencies
+        run: mix deps.compile
+
+      - name: Compile application
+        run: mix compile --warnings-as-errors
+
+      - name: Check formatting
+        run: mix format --check-formatted
+
+      - name: Run Credo
+        run: mix credo --strict
+
+      - name: Run tests
+        run: mix test
+
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "## Library Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "Library suite completed on OTP ${{ env.OTP_VERSION }} / Elixir ${{ env.ELIXIR_VERSION }}." >> $GITHUB_STEP_SUMMARY
+
+  example-app:
+    name: Example App Tests
+    runs-on: ubuntu-latest
+    env:
+      MIX_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/phoenix_ecto_open_api_demo_test
     services:
       postgres:
-        image: postgres:15
+        image: postgres:17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -34,8 +84,8 @@ jobs:
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
         with:
-          otp-version: ${{ matrix.otp }}
-          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
 
       - name: Restore dependencies cache
         uses: actions/cache@v4
@@ -45,31 +95,43 @@ jobs:
             _build
             examples/phoenix_ecto_open_api_demo/deps
             examples/phoenix_ecto_open_api_demo/_build
-          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-
+          key: ${{ runner.os }}-mix-example-${{ hashFiles('mix.lock', 'examples/phoenix_ecto_open_api_demo/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-example-
 
-      - name: Install dependencies
+      - name: Install library dependencies
         run: mix deps.get
-
-      - name: Check formatting
-        run: mix format --check-formatted
-
-      - name: Run tests
-        run: mix test
-
-      - name: Run Credo
-        run: mix credo --strict
 
       - name: Install example dependencies
         working-directory: examples/phoenix_ecto_open_api_demo
         run: mix deps.get
 
+      - name: Compile example dependencies
+        working-directory: examples/phoenix_ecto_open_api_demo
+        run: mix deps.compile
+
+      - name: Compile example application
+        working-directory: examples/phoenix_ecto_open_api_demo
+        run: mix compile --warnings-as-errors
+
+      - name: Check example formatting
+        working-directory: examples/phoenix_ecto_open_api_demo
+        run: mix format --check-formatted
+
+      - name: Create database
+        working-directory: examples/phoenix_ecto_open_api_demo
+        run: mix ecto.create
+
+      - name: Run migrations
+        working-directory: examples/phoenix_ecto_open_api_demo
+        run: mix ecto.migrate
+
       - name: Run example tests
         working-directory: examples/phoenix_ecto_open_api_demo
-        env:
-          MIX_ENV: test
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/phoenix_ecto_open_api_demo_test
+        run: mix test
+
+      - name: Test Summary
+        if: always()
         run: |
-          mix ecto.create
-          mix ecto.migrate
-          mix test
+          echo "## Example App Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "Example suite completed on OTP ${{ env.OTP_VERSION }} / Elixir ${{ env.ELIXIR_VERSION }}." >> $GITHUB_STEP_SUMMARY

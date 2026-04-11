@@ -501,12 +501,6 @@ defmodule ExOpenApiUtils do
     discriminator_string =
       fetch_matching_discriminator_property_name!(key, write_prop, read_prop)
 
-    # Ensure the atom form of the discriminator property name exists so
-    # OpenApiSpex.Cast.Discriminator's `String.to_existing_atom/1` call
-    # at cast time does not blow up. This is a deliberate, single-site
-    # atom creation keyed off a value the user declared in their schema.
-    _ = String.to_atom(discriminator_string)
-
     check_oneof_matches_mapping!(key, :writeOnly, write_prop.schema)
     check_oneof_matches_mapping!(key, :readOnly, read_prop.schema)
 
@@ -536,9 +530,23 @@ defmodule ExOpenApiUtils do
       end)
       |> Map.new()
 
+    # Store the atom form of the discriminator propertyName in the
+    # returned map. This map flows through
+    # `Protocol.derive(..., polymorphic_variants: ...)` which passes it
+    # to `ExOpenApiUtils.Mapper.__deriving__/3`, where `Macro.escape/1`
+    # pins the whole map as a literal inside the generated Mapper impl's
+    # `to_map/1` body. Elixir's compiler stashes that literal in the
+    # module's LitT (literal pool) chunk, and the BEAM loader
+    # materialises every atom inside the literal pool at module-load
+    # time — so `:object_type` (or whatever the user declared) is
+    # present in the runtime atom table the moment the compiled `.beam`
+    # file is loaded, even in a freshly-started BEAM that has never run
+    # the library's compile-time `__before_compile__` hook.
+    # See GH-27 for the bug this fixes.
     %{
       variant_map: variant_map,
       discriminator_string: discriminator_string,
+      discriminator_atom: String.to_atom(discriminator_string),
       type_field_atom: type_field_name
     }
   end
