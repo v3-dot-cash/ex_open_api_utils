@@ -1,4 +1,5 @@
 defmodule ExOpenApiUtils.SchemaDefinition do
+  @enforce_keys [:title, :description]
   defstruct title: nil,
             required: [],
             properties: [],
@@ -16,5 +17,4 @@ defmodule ExOpenApiUtils.SchemaDefinition do
           type: atom(),
           nullable: boolean() | nil
         }
-  @enforce_keys [:title, :description]
 end
