@@ -2,16 +2,16 @@
 Code.require_file("support/test_schema.ex", __DIR__)
 Code.require_file("support/nullable_schema_test.ex", __DIR__)
 
-# Polymorphic fixtures: variants must load before parents, because parents
-# reference the variants' generated OpenApiSchema sub-modules inside
-# `Polymorphic.one_of/1` at macro-expansion time.
-Code.require_file("support/polymorphic/email.ex", __DIR__)
-Code.require_file("support/polymorphic/sms.ex", __DIR__)
-Code.require_file("support/polymorphic/webhook.ex", __DIR__)
-Code.require_file("support/polymorphic/notification.ex", __DIR__)
+# Polymorphic discriminator fixtures: variants must load before parents,
+# because parents reference the variants' generated OpenApiSchema sub-modules
+# inside the discriminator's oneOf at macro-expansion time.
+Code.require_file("support/polymorphic_discriminator/email_channel.ex", __DIR__)
+Code.require_file("support/polymorphic_discriminator/sms_channel.ex", __DIR__)
+Code.require_file("support/polymorphic_discriminator/webhook_channel.ex", __DIR__)
+Code.require_file("support/polymorphic_discriminator/notification.ex", __DIR__)
 
-Code.require_file("support/polymorphic/custom_event_click.ex", __DIR__)
-Code.require_file("support/polymorphic/custom_event_pageview.ex", __DIR__)
-Code.require_file("support/polymorphic/analytics.ex", __DIR__)
+Code.require_file("support/polymorphic_discriminator/click_event.ex", __DIR__)
+Code.require_file("support/polymorphic_discriminator/pageview_event.ex", __DIR__)
+Code.require_file("support/polymorphic_discriminator/analytics.ex", __DIR__)
 
 ExUnit.start()

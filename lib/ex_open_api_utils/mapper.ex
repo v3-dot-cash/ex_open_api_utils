@@ -5,10 +5,11 @@ defprotocol ExOpenApiUtils.Mapper do
 end
 
 defimpl ExOpenApiUtils.Mapper, for: Any do
-  defmacro __deriving__(module, _struct,
-             property_attrs: property_attrs,
-             map_direction: map_direction
-           ) do
+  defmacro __deriving__(module, _struct, opts) do
+    property_attrs = Keyword.fetch!(opts, :property_attrs)
+    map_direction = Keyword.fetch!(opts, :map_direction)
+    polymorphic_variants = Keyword.get(opts, :polymorphic_variants, %{})
+
     quote do
       alias ExOpenApiUtils.Property
 
@@ -29,7 +30,18 @@ defimpl ExOpenApiUtils.Mapper, for: Any do
                     Map.get(arg, source)
                   end
 
+                raw_val = val
                 val = val |> ExOpenApiUtils.Mapper.to_map()
+
+                val =
+                  ExOpenApiUtils.Mapper.Polymorphic.inject(
+                    val,
+                    raw_val,
+                    property.key,
+                    unquote(Macro.escape(polymorphic_variants)),
+                    :from_ecto
+                  )
+
                 Map.put(acc, Atom.to_string(property.key), val)
               end)
 
@@ -38,8 +50,17 @@ defimpl ExOpenApiUtils.Mapper, for: Any do
                                                                          acc ->
                 destination = property.source || property.key
 
-                val = Map.get(arg, property.key)
-                val = val |> ExOpenApiUtils.Mapper.to_map()
+                raw_val = Map.get(arg, property.key)
+                val = raw_val |> ExOpenApiUtils.Mapper.to_map()
+
+                val =
+                  ExOpenApiUtils.Mapper.Polymorphic.inject(
+                    val,
+                    raw_val,
+                    property.key,
+                    unquote(Macro.escape(polymorphic_variants)),
+                    :from_open_api
+                  )
 
                 if is_list(destination) do
                   [root | rest] = destination
@@ -95,4 +116,37 @@ defmodule ExOpenApiUtils.Mapper.Utils do
   def explode_map([], val) do
     val
   end
+end
+
+defmodule ExOpenApiUtils.Mapper.Polymorphic do
+  @moduledoc false
+
+  # Injects a discriminator key into `val` when `property_key` is a polymorphic
+  # field. Looks up the raw struct's module in the variant_map; if found, picks
+  # the direction-appropriate injection key (string for :from_ecto, atom for
+  # :from_open_api) and puts the wire value on the map.
+  #
+  # When the property is not polymorphic, `val` is returned unchanged.
+
+  def inject(val, raw_val, property_key, polymorphic_variants, direction)
+      when is_map(polymorphic_variants) and map_size(polymorphic_variants) > 0 do
+    case Map.fetch(polymorphic_variants, property_key) do
+      :error ->
+        val
+
+      {:ok, %{variant_map: variant_map, discriminator_string: disc_str, type_field_atom: type_atom}} ->
+        with %struct_mod{} <- raw_val,
+             {:ok, wire_value} <- Map.fetch(variant_map, struct_mod),
+             true <- is_map(val) do
+          case direction do
+            :from_ecto -> Map.put(val, disc_str, wire_value)
+            :from_open_api -> Map.put(val, type_atom, wire_value)
+          end
+        else
+          _ -> val
+        end
+    end
+  end
+
+  def inject(val, _raw_val, _property_key, _polymorphic_variants, _direction), do: val
 end
