@@ -58,17 +58,16 @@ defmodule ExOpenApiUtils.NestedPolymorphicCastRoundTripTest do
   alias ExOpenApiUtilsTest.OpenApiSchema.SubscriptionResponse
 
   # Parent-contextual siblings generated at Subscription's __before_compile__
-  alias ExOpenApiUtilsTest.OpenApiSchema.SubscriptionWebhookDestinationRequest
-  alias ExOpenApiUtilsTest.OpenApiSchema.SubscriptionWebhookDestinationResponse
   alias ExOpenApiUtilsTest.OpenApiSchema.SubscriptionEmailDestinationRequest
+  alias ExOpenApiUtilsTest.OpenApiSchema.SubscriptionWebhookDestinationRequest
 
   # Parent-contextual siblings generated at WebhookDestination's __before_compile__
-  alias ExOpenApiUtilsTest.OpenApiSchema.WebhookDestinationOAuthRequest
   alias ExOpenApiUtilsTest.OpenApiSchema.WebhookDestinationBasicAuthRequest
+  alias ExOpenApiUtilsTest.OpenApiSchema.WebhookDestinationOAuthRequest
 
   # Parent-contextual siblings generated at OAuthAuth's __before_compile__
-  alias ExOpenApiUtilsTest.OpenApiSchema.OAuthClientCredentialsGrantRequest
   alias ExOpenApiUtilsTest.OpenApiSchema.OAuthAuthorizationCodeGrantRequest
+  alias ExOpenApiUtilsTest.OpenApiSchema.OAuthClientCredentialsGrantRequest
 
   defp resolved_schemas do
     empty_spec = %OpenApiSpex.OpenApi{

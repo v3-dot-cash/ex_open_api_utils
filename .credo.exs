@@ -42,7 +42,14 @@
           {Credo.Check.Refactor.CondStatements, []},
           {Credo.Check.Refactor.CyclomaticComplexity, []},
           {Credo.Check.Refactor.FunctionArity, []},
-          {Credo.Check.Refactor.LongQuoteBlocks, []},
+          # `__before_compile__` macros in this library orchestrate multiple
+          # codegen steps (build polymorphic_variants, generate parent-
+          # contextual siblings, derive Mapper impls, create Request/Response
+          # submodules) inside a single quote block. Extracting sections purely
+          # to hit the default 150-line ceiling fragments locally-cohesive
+          # logic across helpers. 200 accommodates legitimate codegen length
+          # without inviting actually sprawling quote blocks.
+          {Credo.Check.Refactor.LongQuoteBlocks, [max_line_count: 200]},
           {Credo.Check.Refactor.MapInto, []},
           {Credo.Check.Refactor.MatchInCondition, []},
           {Credo.Check.Refactor.NegatedConditionsInUnless, []},
