@@ -12,10 +12,9 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
     2. Takes the raw JSON response body and feeds it back through
        `OpenApiSpex.Cast.cast/4` against the resolved
        `NotificationResponse` schema in `@api_spec.components.schemas`.
-       The call uses `read_write_scope: :read` so required `writeOnly`
-       fields are skipped on the response side. On success it returns a
-       real `%NotificationResponseSchema{}` struct whose `:channel` is the
-       correct variant struct (`%NotificationEmailResponse{}`, `%NotificationSmsResponse{}`, or
+       On success it returns a real `%NotificationResponseSchema{}` struct
+       whose `:channel` is the correct variant struct
+       (`%NotificationEmailResponse{}`, `%NotificationSmsResponse{}`, or
        `%NotificationWebhookResponse{}`) dispatched from the oneOf.
 
     3. Does a full deep pattern-match on the cast struct — every variant
@@ -111,7 +110,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       cast_items =
         Enum.map(body, fn item ->
           assert {:ok, cast} =
-                   Cast.cast(notification_schema, item, schemas, read_write_scope: :read)
+                   Cast.cast(notification_schema, item, schemas)
 
           cast
         end)
@@ -174,7 +173,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       schemas = @api_spec.components.schemas
       schema = Map.fetch!(schemas, "NotificationResponse")
 
-      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+      assert {:ok, cast} = Cast.cast(schema, body, schemas)
 
       # Deep pattern match on the cast struct — every variant field checked
       # by name, variant struct asserted, nothing from other variants
@@ -235,7 +234,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       schemas = @api_spec.components.schemas
       schema = Map.fetch!(schemas, "NotificationResponse")
 
-      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+      assert {:ok, cast} = Cast.cast(schema, body, schemas)
 
       assert %NotificationResponseSchema{
                id: id,
@@ -283,7 +282,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       schemas = @api_spec.components.schemas
       schema = Map.fetch!(schemas, "NotificationResponse")
 
-      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+      assert {:ok, cast} = Cast.cast(schema, body, schemas)
 
       assert %NotificationResponseSchema{
                id: id,
@@ -333,7 +332,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
 
       schemas = @api_spec.components.schemas
       schema = Map.fetch!(schemas, "NotificationResponse")
-      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+      assert {:ok, cast} = Cast.cast(schema, body, schemas)
 
       assert %NotificationResponseSchema{
                id: notification_id,
@@ -356,7 +355,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
 
       schemas = @api_spec.components.schemas
       schema = Map.fetch!(schemas, "NotificationResponse")
-      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+      assert {:ok, cast} = Cast.cast(schema, body, schemas)
 
       assert %NotificationResponseSchema{
                id: notification_id,
@@ -380,7 +379,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
 
       schemas = @api_spec.components.schemas
       schema = Map.fetch!(schemas, "NotificationResponse")
-      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+      assert {:ok, cast} = Cast.cast(schema, body, schemas)
 
       assert %NotificationResponseSchema{
                id: notification_id,
@@ -422,7 +421,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
 
       schemas = @api_spec.components.schemas
       schema = Map.fetch!(schemas, "NotificationResponse")
-      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+      assert {:ok, cast} = Cast.cast(schema, body, schemas)
 
       assert %NotificationResponseSchema{
                id: id,
@@ -454,7 +453,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
 
       schemas = @api_spec.components.schemas
       schema = Map.fetch!(schemas, "NotificationResponse")
-      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+      assert {:ok, cast} = Cast.cast(schema, body, schemas)
 
       # The channel must have cast into the new variant, not the original.
       assert %NotificationResponseSchema{
@@ -494,7 +493,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
 
       schemas = @api_spec.components.schemas
       schema = Map.fetch!(schemas, "NotificationResponse")
-      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+      assert {:ok, cast} = Cast.cast(schema, body, schemas)
 
       assert %NotificationResponseSchema{
                id: id,

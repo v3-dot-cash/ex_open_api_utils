@@ -65,7 +65,7 @@ defmodule ExOpenApiUtils.PolymorphicCastRoundTripTest do
   defp cast_response(wire_map, schema_title) do
     schemas = resolved_schemas()
     schema = Map.fetch!(schemas, schema_title)
-    Cast.cast(schema, wire_map, schemas, read_write_scope: :read)
+    Cast.cast(schema, wire_map, schemas)
   end
 
   describe "GH-30 round-trip — Notification.channel preserves the discriminator on the variant struct" do
