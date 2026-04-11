@@ -27,3 +27,7 @@ ex_open_api_utils-*.tar
 
 # ElixirLS
 /.elixir_ls/
+
+# Claude Code project settings — per-user and per-machine, not shared
+.claude/settings.json
+.claude/settings.local.json
