@@ -19,7 +19,11 @@ config :phoenix_ecto_open_api_demo, PhoenixEctoOpenApiDemo.Repo,
 config :phoenix_ecto_open_api_demo, PhoenixEctoOpenApiDemoWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: 4000],
+  #
+  # PORT is overridable via env so the local vitest integration tier can
+  # bind Phoenix to 4100 (or any other port) without colliding with a
+  # contributor's running dev server on 4000. Defaults to 4000.
+  http: [ip: {127, 0, 0, 1}, port: String.to_integer(System.get_env("PORT") || "4000")],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
