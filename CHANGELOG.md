@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.1](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.13.0...v0.13.1) (2026-04-11)
+
+
+### Bug Fixes
+
+* **compile:** resolve preexisting warnings so --warnings-as-errors passes ([b8fa0af](https://github.com/v3-dot-cash/ex_open_api_utils/commit/b8fa0af4962a5325987a77d44b14432199b630e7))
+* **polymorphic:** persist discriminator propertyName atom into Mapper impl literal pool ([51daadf](https://github.com/v3-dot-cash/ex_open_api_utils/commit/51daadfb7748f9273abc9f5caec0d4babfe18b2a)), closes [#27](https://github.com/v3-dot-cash/ex_open_api_utils/issues/27)
+
 ## [0.13.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.12.0...v0.13.0) (2026-04-11)
 
 
