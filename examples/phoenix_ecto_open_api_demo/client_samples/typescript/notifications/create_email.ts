@@ -1,21 +1,19 @@
 /**
  * Sample: creating a notification with an email channel.
  *
- * Uses the typed TypeScript SDK that `mix openapi.dump` + hey-api emits
- * into `integration-tests/generated/`. The GH-30 parent-contextual
- * variant siblings mean hey-api sees a concrete `allOf` composition for
- * each variant and can emit a union that carries `channel_type` as a
- * real discriminant property on each arm — so TypeScript's narrowing
- * works out of the box.
+ * Uses the typed SDK that @hey-api/openapi-ts emits under the
+ * production-style plugin stack (@hey-api/client-ky, @hey-api/typescript,
+ * @hey-api/sdk, @hey-api/schemas, zod). The GH-30 parent-contextual
+ * variant siblings mean hey-api sees a concrete allOf composition for
+ * each variant and can emit a discriminated union with channel_type as
+ * a real discriminant property — so TypeScript narrowing works out of
+ * the box.
  *
- * Run the local tier end-to-end first to materialize the generated SDK:
- *
- *     make vitest-generate-sdk
- *
- * Then import from `@/generated/...` (path alias configured in
- * integration-tests/tsconfig.json) to see the full typed surface.
+ * The generated SDK lives under integration-tests/generated/ after
+ * `make vitest-dump-spec` writes priv/static/openapi.json and the
+ * @hey-api/vite-plugin runs on vitest startup.
  */
-import { client } from "@hey-api/client-fetch";
+import { notificationCreate } from "../../../integration-tests/generated/sdk.gen";
 
 export async function createEmailNotification(params: {
   subject: string;
@@ -23,8 +21,7 @@ export async function createEmailNotification(params: {
   from: string;
   body: string;
 }) {
-  return client.post({
-    url: "/api/notifications",
+  return notificationCreate({
     body: {
       subject: params.subject,
       channel: {

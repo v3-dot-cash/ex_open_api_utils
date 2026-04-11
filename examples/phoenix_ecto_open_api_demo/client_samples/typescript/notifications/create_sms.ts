@@ -1,15 +1,14 @@
 /**
  * Sample: creating a notification with an sms channel.
  */
-import { client } from "@hey-api/client-fetch";
+import { notificationCreate } from "../../../integration-tests/generated/sdk.gen";
 
 export async function createSmsNotification(params: {
   subject: string;
   phone_number: string;
   body: string;
 }) {
-  return client.post({
-    url: "/api/notifications",
+  return notificationCreate({
     body: {
       subject: params.subject,
       channel: {
