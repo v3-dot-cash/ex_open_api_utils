@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: phoenix_ecto_open_api_demo_vitest_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: phoenix_ecto_open_api_demo_vitest
+    ports:
+      # Dedicated port 5433 so the vitest tier's Postgres never collides
+      # with a contributor's existing dev Postgres on the default 5432.
+      # Override with VITEST_POSTGRES_PORT in the Makefile if 5433 is
+      # already taken.
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 3s
+      retries: 15
+    # Data directory is RAM-backed via tmpfs: `docker compose down -v`
+    # followed by `up -d --wait` resets the whole DB in under two seconds,
+    # which is how the vitest tier guarantees per-run freshness without
+    # needing a dedicated sandbox reset endpoint. Not used by `mix test`
+    # or CI — only by the `make vitest` workflow.
+    tmpfs:
+      - /var/lib/postgresql/data

@@ -2,39 +2,25 @@ defmodule PhoenixEctoOpenApiDemo.NotificationContext.Notification do
   @moduledoc """
   Parent schema for an outbound notification with a polymorphic `:channel`.
 
-  The polymorphism is declared in two halves:
+  The polymorphism is declared in one call to `open_api_polymorphic_property/1`:
+  the macro bridges `polymorphic_embeds_one`'s `type_field_name:` (Ecto atom)
+  with the OpenAPI wire discriminator (string), and the library auto-generates
+  one parent-contextual variant submodule per `(parent, variant, direction)`
+  triple at compile time via `allOf` composition. The generated siblings
+  (e.g. `NotificationEmailRequest` / `NotificationEmailResponse`) carry the
+  discriminator as a real `defstruct` field so `Kernel.struct/2` preserves it
+  through the cast pipeline.
 
-    * Two `open_api_property` calls with the same `:channel` key — one
-      `writeOnly` pointing at `*Request` submodules, one `readOnly` pointing
-      at `*Response` submodules.
-    * A single `polymorphic_embed_discriminator` call that tells the library
-      to bridge `polymorphic_embeds_one`'s `type_field_name:` (Ecto, atom)
-      with the `%OpenApiSpex.Discriminator{propertyName: ...}` (wire, string)
-      carried inside each of the two schemas above.
-
-  Variants (`EmailChannel`, `SmsChannel`, `WebhookChannel`) are plain
-  `use ExOpenApiUtils` embedded schemas — they know nothing about being
-  part of a discriminated union.
+  Variants (`Email`, `Sms`, `Webhook`) are plain `use ExOpenApiUtils` embedded
+  schemas — they know nothing about being part of a discriminated union.
   """
   use ExOpenApiUtils
-  alias OpenApiSpex.Discriminator
 
   alias PhoenixEctoOpenApiDemo.NotificationContext.Email
   alias PhoenixEctoOpenApiDemo.NotificationContext.Sms
   alias PhoenixEctoOpenApiDemo.NotificationContext.Webhook
 
-  alias PhoenixEctoOpenApiDemo.OpenApiSchema.EmailRequest
-  alias PhoenixEctoOpenApiDemo.OpenApiSchema.EmailResponse
-  alias PhoenixEctoOpenApiDemo.OpenApiSchema.SmsRequest
-  alias PhoenixEctoOpenApiDemo.OpenApiSchema.SmsResponse
-  alias PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookRequest
-  alias PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookResponse
-
   import PolymorphicEmbed
-
-  Code.ensure_compiled!(Email)
-  Code.ensure_compiled!(Sms)
-  Code.ensure_compiled!(Webhook)
 
   open_api_property(
     key: :id,
@@ -51,41 +37,16 @@ defmodule PhoenixEctoOpenApiDemo.NotificationContext.Notification do
     schema: %Schema{type: :string, example: "Your order has shipped"}
   )
 
-  open_api_property(
+  open_api_polymorphic_property(
     key: :channel,
-    schema: %Schema{
-      type: :object,
-      writeOnly: true,
-      oneOf: [EmailRequest, SmsRequest, WebhookRequest],
-      discriminator: %Discriminator{
-        propertyName: "object_type",
-        mapping: %{
-          "email" => EmailRequest,
-          "sms" => SmsRequest,
-          "webhook" => WebhookRequest
-        }
-      }
-    }
+    type_field_name: :__type__,
+    open_api_discriminator_property: "channel_type",
+    variants: [
+      email: Email,
+      sms: Sms,
+      webhook: Webhook
+    ]
   )
-
-  open_api_property(
-    key: :channel,
-    schema: %Schema{
-      type: :object,
-      readOnly: true,
-      oneOf: [EmailResponse, SmsResponse, WebhookResponse],
-      discriminator: %Discriminator{
-        propertyName: "object_type",
-        mapping: %{
-          "email" => EmailResponse,
-          "sms" => SmsResponse,
-          "webhook" => WebhookResponse
-        }
-      }
-    }
-  )
-
-  polymorphic_embed_discriminator(key: :channel, type_field_name: :__type__)
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id

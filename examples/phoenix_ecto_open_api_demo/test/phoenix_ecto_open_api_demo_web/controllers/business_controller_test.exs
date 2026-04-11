@@ -87,4 +87,18 @@ defmodule PhoenixEctoOpenApiDemoWeb.BusinessControllerTest do
     business = business_fixture()
     %{business: business}
   end
+
+  describe "Mapper round-trip coverage for BusinessResponse" do
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.BusinessResponse
+
+    test "Mapper.to_map on a BusinessResponse struct emits atom-keyed map" do
+      struct = %BusinessResponse{id: "b_1", name: "Acme Corp", tenant_name: "Umbrella"}
+      map = ExOpenApiUtils.Mapper.to_map(struct)
+
+      assert is_map(map)
+      assert map[:id] == "b_1"
+      assert map[:name] == "Acme Corp"
+      refute Map.has_key?(map, :__struct__)
+    end
+  end
 end

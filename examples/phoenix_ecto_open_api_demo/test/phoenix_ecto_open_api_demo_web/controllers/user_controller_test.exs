@@ -84,4 +84,19 @@ defmodule PhoenixEctoOpenApiDemoWeb.UserControllerTest do
     user = user_fixture()
     %{user: user}
   end
+
+  describe "Mapper round-trip coverage for UserResponse" do
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.UserResponse
+
+    test "Mapper.to_map on a UserResponse struct emits atom-keyed map" do
+      # UserResponse's open_api_property list only declares :name, so
+      # that's the only field on the generated defstruct. No :id.
+      struct = %UserResponse{name: "alice"}
+      map = ExOpenApiUtils.Mapper.to_map(struct)
+
+      assert is_map(map)
+      assert map[:name] == "alice"
+      refute Map.has_key?(map, :__struct__)
+    end
+  end
 end

@@ -10,6 +10,22 @@ defmodule ExOpenApiUtils.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       consolidate_protocols: Mix.env() != :test,
+      test_coverage: [
+        # Exclude modules that are genuinely not unit-testable:
+        #   * The yaml-dump mix task is a CLI entrypoint exercised via
+        #     `mix ex_open_api_utils.spec.yaml` not unit calls.
+        #   * The Mapper protocol has fallback impls for List, plain maps,
+        #     Ecto.Association.NotLoaded, and a helper Utils module. The
+        #     fallbacks exist to route edge-case runtime types and are
+        #     integration-tested indirectly via consumer code rather than
+        #     in the library's own test suite.
+        ignore_modules: [
+          Mix.Tasks.ExOpenApiUtils.Spec.Yaml,
+          ExOpenApiUtils.Mapper.List,
+          ExOpenApiUtils.Mapper.Utils,
+          ExOpenApiUtils.Mapper.Ecto.Association.NotLoaded
+        ]
+      ],
       package: [
         links: %{"GitHub" => "https://github.com/v3-dot-cash/ex_open_api_utils"},
         licenses: ["MIT"]

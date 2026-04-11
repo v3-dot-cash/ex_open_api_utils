@@ -15,8 +15,8 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
        The call uses `read_write_scope: :read` so required `writeOnly`
        fields are skipped on the response side. On success it returns a
        real `%NotificationResponseSchema{}` struct whose `:channel` is the
-       correct variant struct (`%EmailResponse{}`, `%SmsResponse{}`, or
-       `%WebhookResponse{}`) dispatched from the oneOf.
+       correct variant struct (`%NotificationEmailResponse{}`, `%NotificationSmsResponse{}`, or
+       `%NotificationWebhookResponse{}`) dispatched from the oneOf.
 
     3. Does a full deep pattern-match on the cast struct — every variant
        field asserted by name and value — and separately verifies the
@@ -40,18 +40,22 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
 
   # Auto-generated OpenApiSpex response submodules. They are real Elixir
   # structs (OpenApiSpex.schema/1 sets x-struct to the module itself), so
-  # Cast.cast returns typed struct values we can pattern-match on.
-  alias PhoenixEctoOpenApiDemo.OpenApiSchema.EmailResponse
+  # Cast.cast returns typed struct values we can pattern-match on. The
+  # parent-contextual siblings (NotificationEmailResponse, etc.) are the
+  # modules the GH-30 fix generates via open_api_polymorphic_property/1's
+  # allOf composition — they carry the discriminator as a real defstruct
+  # field and are the ones the parent's discriminator.mapping routes to.
+  alias PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationEmailResponse
   alias PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationResponse, as: NotificationResponseSchema
-  alias PhoenixEctoOpenApiDemo.OpenApiSchema.SmsResponse
-  alias PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookResponse
+  alias PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationSmsResponse
+  alias PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationWebhookResponse
 
   @api_spec PhoenixEctoOpenApiDemoWeb.ApiSpec.spec()
 
   @email_attrs %{
     subject: "Your order has shipped",
     channel: %{
-      object_type: "email",
+      channel_type: "email",
       to: "buyer@example.com",
       from: "store@example.com",
       body: "Tracking: 1Z999AA10123456784"
@@ -61,7 +65,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
   @sms_attrs %{
     subject: "Verification code",
     channel: %{
-      object_type: "sms",
+      channel_type: "sms",
       phone_number: "+15551234567",
       body: "Your code is 4242"
     }
@@ -70,7 +74,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
   @webhook_attrs %{
     subject: "Order event",
     channel: %{
-      object_type: "webhook",
+      channel_type: "webhook",
       url: "https://hooks.example.com/abc",
       method: "POST"
     }
@@ -114,9 +118,9 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
 
       by_variant =
         Enum.group_by(cast_items, fn
-          %NotificationResponseSchema{channel: %EmailResponse{}} -> :email
-          %NotificationResponseSchema{channel: %SmsResponse{}} -> :sms
-          %NotificationResponseSchema{channel: %WebhookResponse{}} -> :webhook
+          %NotificationResponseSchema{channel: %NotificationEmailResponse{}} -> :email
+          %NotificationResponseSchema{channel: %NotificationSmsResponse{}} -> :sms
+          %NotificationResponseSchema{channel: %NotificationWebhookResponse{}} -> :webhook
         end)
 
       assert length(by_variant[:email]) == 1
@@ -127,7 +131,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
                %NotificationResponseSchema{
                  id: email_id,
                  subject: "Your order has shipped",
-                 channel: %EmailResponse{
+                 channel: %NotificationEmailResponse{
                    to: "buyer@example.com",
                    from: "store@example.com",
                    body: "Tracking: 1Z999AA10123456784"
@@ -140,7 +144,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert [
                %NotificationResponseSchema{
                  subject: "Verification code",
-                 channel: %SmsResponse{
+                 channel: %NotificationSmsResponse{
                    phone_number: "+15551234567",
                    body: "Your code is 4242"
                  }
@@ -150,7 +154,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert [
                %NotificationResponseSchema{
                  subject: "Order event",
-                 channel: %WebhookResponse{
+                 channel: %NotificationWebhookResponse{
                    url: "https://hooks.example.com/abc",
                    method: "POST"
                  }
@@ -160,9 +164,10 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
   end
 
   describe "create email notification" do
-    test "returns 201, cast body is %NotificationResponseSchema{channel: %EmailResponse{}}", %{
-      conn: conn
-    } do
+    test "returns 201, cast body is %NotificationResponseSchema{channel: %NotificationEmailResponse{}}",
+         %{
+           conn: conn
+         } do
       conn = post(conn, ~p"/api/notifications", @email_attrs)
       body = json_response(conn, 201)
 
@@ -177,7 +182,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert %NotificationResponseSchema{
                id: id,
                subject: "Your order has shipped",
-               channel: %EmailResponse{
+               channel: %NotificationEmailResponse{
                  to: "buyer@example.com",
                  from: "store@example.com",
                  body: "Tracking: 1Z999AA10123456784"
@@ -201,7 +206,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
     end
 
     test "returns 422 when required email field is missing", %{conn: conn} do
-      invalid = %{subject: "x", channel: %{object_type: "email", to: "a@b"}}
+      invalid = %{subject: "x", channel: %{channel_type: "email", to: "a@b"}}
       conn = post(conn, ~p"/api/notifications", invalid)
       assert %{"errors" => _} = json_response(conn, 422)
     end
@@ -213,16 +218,17 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
     end
 
     test "returns 422 when discriminator is bogus (:invalid_discriminator_value)", %{conn: conn} do
-      invalid = %{subject: "x", channel: %{object_type: "carrier_pigeon"}}
+      invalid = %{subject: "x", channel: %{channel_type: "carrier_pigeon"}}
       conn = post(conn, ~p"/api/notifications", invalid)
       assert %{"errors" => _} = json_response(conn, 422)
     end
   end
 
   describe "create sms notification" do
-    test "returns 201, cast body is %NotificationResponseSchema{channel: %SmsResponse{}}", %{
-      conn: conn
-    } do
+    test "returns 201, cast body is %NotificationResponseSchema{channel: %NotificationSmsResponse{}}",
+         %{
+           conn: conn
+         } do
       conn = post(conn, ~p"/api/notifications", @sms_attrs)
       body = json_response(conn, 201)
 
@@ -234,7 +240,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert %NotificationResponseSchema{
                id: id,
                subject: "Verification code",
-               channel: %SmsResponse{
+               channel: %NotificationSmsResponse{
                  phone_number: "+15551234567",
                  body: "Your code is 4242"
                }
@@ -254,22 +260,23 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
     end
 
     test "returns 422 when phone_number missing", %{conn: conn} do
-      invalid = %{subject: "x", channel: %{object_type: "sms", body: "hi"}}
+      invalid = %{subject: "x", channel: %{channel_type: "sms", body: "hi"}}
       conn = post(conn, ~p"/api/notifications", invalid)
       assert %{"errors" => _} = json_response(conn, 422)
     end
 
     test "returns 422 when body missing", %{conn: conn} do
-      invalid = %{subject: "x", channel: %{object_type: "sms", phone_number: "+15551234567"}}
+      invalid = %{subject: "x", channel: %{channel_type: "sms", phone_number: "+15551234567"}}
       conn = post(conn, ~p"/api/notifications", invalid)
       assert %{"errors" => _} = json_response(conn, 422)
     end
   end
 
   describe "create webhook notification" do
-    test "returns 201, cast body is %NotificationResponseSchema{channel: %WebhookResponse{}}", %{
-      conn: conn
-    } do
+    test "returns 201, cast body is %NotificationResponseSchema{channel: %NotificationWebhookResponse{}}",
+         %{
+           conn: conn
+         } do
       conn = post(conn, ~p"/api/notifications", @webhook_attrs)
       body = json_response(conn, 201)
 
@@ -281,7 +288,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert %NotificationResponseSchema{
                id: id,
                subject: "Order event",
-               channel: %WebhookResponse{
+               channel: %NotificationWebhookResponse{
                  url: "https://hooks.example.com/abc",
                  method: "POST"
                }
@@ -304,7 +311,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       invalid = %{
         subject: "x",
         channel: %{
-          object_type: "webhook",
+          channel_type: "webhook",
           url: "https://hooks.example.com/abc",
           method: "TELEPORT"
         }
@@ -316,7 +323,9 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
   end
 
   describe "show notification" do
-    test "shows an email notification, cast.channel is %EmailResponse{}", %{conn: conn} do
+    test "shows an email notification, cast.channel is %NotificationEmailResponse{}", %{
+      conn: conn
+    } do
       notification = email_notification_fixture()
 
       conn = get(conn, ~p"/api/notifications/#{notification.id}")
@@ -329,7 +338,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert %NotificationResponseSchema{
                id: notification_id,
                subject: "Your order has shipped",
-               channel: %EmailResponse{
+               channel: %NotificationEmailResponse{
                  to: "buyer@example.com",
                  from: "store@example.com",
                  body: "Tracking: 1Z999AA10123456784"
@@ -339,7 +348,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert notification_id == notification.id
     end
 
-    test "shows an sms notification, cast.channel is %SmsResponse{}", %{conn: conn} do
+    test "shows an sms notification, cast.channel is %NotificationSmsResponse{}", %{conn: conn} do
       notification = sms_notification_fixture()
 
       conn = get(conn, ~p"/api/notifications/#{notification.id}")
@@ -352,7 +361,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert %NotificationResponseSchema{
                id: notification_id,
                subject: "Verification code",
-               channel: %SmsResponse{
+               channel: %NotificationSmsResponse{
                  phone_number: "+15551234567",
                  body: "Your code is 4242"
                }
@@ -361,7 +370,9 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert notification_id == notification.id
     end
 
-    test "shows a webhook notification, cast.channel is %WebhookResponse{}", %{conn: conn} do
+    test "shows a webhook notification, cast.channel is %NotificationWebhookResponse{}", %{
+      conn: conn
+    } do
       notification = webhook_notification_fixture()
 
       conn = get(conn, ~p"/api/notifications/#{notification.id}")
@@ -374,7 +385,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert %NotificationResponseSchema{
                id: notification_id,
                subject: "Order event",
-               channel: %WebhookResponse{
+               channel: %NotificationWebhookResponse{
                  url: "https://hooks.example.com/abc",
                  method: "POST"
                }
@@ -391,13 +402,15 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
   end
 
   describe "update notification" do
-    test "updates only the subject, cast.channel still %EmailResponse{}", %{conn: conn} do
+    test "updates only the subject, cast.channel still %NotificationEmailResponse{}", %{
+      conn: conn
+    } do
       notification = email_notification_fixture()
 
       update_attrs = %{
         subject: "Updated subject",
         channel: %{
-          object_type: "email",
+          channel_type: "email",
           to: "buyer@example.com",
           from: "store@example.com",
           body: "Tracking: 1Z999AA10123456784"
@@ -414,7 +427,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert %NotificationResponseSchema{
                id: id,
                subject: "Updated subject",
-               channel: %EmailResponse{
+               channel: %NotificationEmailResponse{
                  to: "buyer@example.com",
                  from: "store@example.com",
                  body: "Tracking: 1Z999AA10123456784"
@@ -430,7 +443,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       update_attrs = %{
         subject: "Now over SMS",
         channel: %{
-          object_type: "sms",
+          channel_type: "sms",
           phone_number: "+15551234567",
           body: "Your code is 4242"
         }
@@ -447,7 +460,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert %NotificationResponseSchema{
                id: id,
                subject: "Now over SMS",
-               channel: %SmsResponse{
+               channel: %NotificationSmsResponse{
                  phone_number: "+15551234567",
                  body: "Your code is 4242"
                }
@@ -470,7 +483,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       update_attrs = %{
         subject: "Now over webhook",
         channel: %{
-          object_type: "webhook",
+          channel_type: "webhook",
           url: "https://hooks.example.com/new",
           method: "POST"
         }
@@ -486,7 +499,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert %NotificationResponseSchema{
                id: id,
                subject: "Now over webhook",
-               channel: %WebhookResponse{
+               channel: %NotificationWebhookResponse{
                  url: "https://hooks.example.com/new",
                  method: "POST"
                }
@@ -508,7 +521,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
 
       invalid = %{
         subject: "x",
-        channel: %{object_type: "email", to: "only-to"}
+        channel: %{channel_type: "email", to: "only-to"}
       }
 
       conn = put(conn, ~p"/api/notifications/#{notification}", invalid)
@@ -531,7 +544,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
 
   describe "discriminator atom persistence (GH-27 regression lock, Phoenix flow)" do
     # Bytecode-level assertion: walk the `abstract_code` chunk of the
-    # compiled Mapper impl's .beam and verify that `:object_type` is
+    # compiled Mapper impl's .beam and verify that `:channel_type` is
     # present as an `{:atom, line, name}` literal.  This is the canonical
     # pre-optimization AST emitted by the Elixir compiler — if the atom
     # is anywhere in the compiled module, it will show up here.
@@ -563,8 +576,18 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
     defp collect_atoms(_, acc), do: acc
 
     defp literal_atoms_in(module) do
-      beam_path = :code.which(module)
-      refute beam_path in [:non_existing, :preloaded, :cover_compiled]
+      # Build the beam path directly from Mix.Project.compile_path/0
+      # instead of via :code.which/1. Under `mix test --cover` the cover
+      # tool replaces the in-memory loaded module with a cover-instrumented
+      # version, and :code.which/1 then returns :cover_compiled instead
+      # of the on-disk path — which breaks the beam_lib read. The plain
+      # compile's .beam is still on disk untouched, and that's the
+      # artifact GH-27 actually cares about (it's the one the BEAM loader
+      # will materialize in production), so read it directly.
+      beam_path =
+        Mix.Project.compile_path()
+        |> Path.join("#{module}.beam")
+        |> String.to_charlist()
 
       {:ok, {_, [{:abstract_code, {:raw_abstract_v1, forms}}]}} =
         :beam_lib.chunks(beam_path, [:abstract_code])
@@ -572,22 +595,117 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       collect_atoms(forms, MapSet.new())
     end
 
-    test "NotificationRequest Mapper impl .beam contains :object_type" do
+    test "NotificationRequest Mapper impl .beam contains :channel_type" do
       atoms =
         literal_atoms_in(
           ExOpenApiUtils.Mapper.PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationRequest
         )
 
-      assert :object_type in atoms
+      assert :channel_type in atoms
     end
 
-    test "NotificationResponse Mapper impl .beam contains :object_type" do
+    test "NotificationResponse Mapper impl .beam contains :channel_type" do
       atoms =
         literal_atoms_in(
           ExOpenApiUtils.Mapper.PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationResponse
         )
 
-      assert :object_type in atoms
+      assert :channel_type in atoms
+    end
+  end
+
+  describe "Mapper round-trip coverage for generated notification submodules" do
+    # Phoenix's Controller.json/2 goes straight to Jason.encode! on
+    # response structs, so the library-derived :from_open_api Mapper
+    # impls on Notification's response submodules and on the original
+    # flat variant submodules never get called through the normal HTTP
+    # pipeline. These tests exercise each one directly by constructing
+    # the struct and calling Mapper.to_map/1, proving that consumers
+    # who want to re-serialize a response struct (for example via
+    # `response |> Mapper.to_map() |> cast_to_schema(NotificationResponse)`)
+    # get the expected atom-keyed shape out.
+
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.EmailRequest
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.EmailResponse
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.SmsRequest
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.SmsResponse
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookRequest
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookResponse
+
+    test "Mapper.to_map on NotificationResponse + parent-contextual email channel" do
+      struct = %NotificationResponseSchema{
+        id: "n_123",
+        subject: "Your order has shipped",
+        channel: %NotificationEmailResponse{
+          to: "buyer@example.com",
+          from: "store@example.com",
+          body: "Tracking: 1Z999",
+          channel_type: "email"
+        }
+      }
+
+      map = ExOpenApiUtils.Mapper.to_map(struct)
+
+      assert is_map(map)
+      assert map[:id] == "n_123"
+      assert map[:subject] == "Your order has shipped"
+      assert is_map(map[:channel])
+    end
+
+    test "Mapper.to_map on NotificationResponse + parent-contextual sms channel" do
+      struct = %NotificationResponseSchema{
+        id: "n_124",
+        subject: "Verification code",
+        channel: %NotificationSmsResponse{
+          phone_number: "+15551234567",
+          body: "Your code is 4242",
+          channel_type: "sms"
+        }
+      }
+
+      map = ExOpenApiUtils.Mapper.to_map(struct)
+      assert map[:id] == "n_124"
+      assert is_map(map[:channel])
+    end
+
+    test "Mapper.to_map on NotificationResponse + parent-contextual webhook channel" do
+      struct = %NotificationResponseSchema{
+        id: "n_125",
+        subject: "Order event",
+        channel: %NotificationWebhookResponse{
+          url: "https://hooks.example.com/abc",
+          method: "POST",
+          channel_type: "webhook"
+        }
+      }
+
+      map = ExOpenApiUtils.Mapper.to_map(struct)
+      assert map[:id] == "n_125"
+      assert is_map(map[:channel])
+    end
+
+    test "Mapper.to_map on standalone flat variant Request submodules" do
+      for struct <- [
+            %EmailRequest{to: "a@b", from: "c@d", body: "x"},
+            %SmsRequest{phone_number: "+15551234567", body: "y"},
+            %WebhookRequest{url: "https://example.com", method: "POST"}
+          ] do
+        map = ExOpenApiUtils.Mapper.to_map(struct)
+        assert is_map(map)
+        refute Map.has_key?(map, :__struct__)
+      end
+    end
+
+    test "Mapper.to_map on standalone flat variant Response submodules" do
+      for struct <- [
+            %EmailResponse{to: "a@b", from: "c@d", body: "x"},
+            %SmsResponse{phone_number: "+15551234567", body: "y"},
+            %WebhookResponse{url: "https://example.com", method: "POST"}
+          ] do
+        map = ExOpenApiUtils.Mapper.to_map(struct)
+        assert is_map(map)
+        refute Map.has_key?(map, :__struct__)
+      end
     end
   end
 end

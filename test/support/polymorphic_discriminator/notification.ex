@@ -1,18 +1,10 @@
 defmodule ExOpenApiUtilsTest.PolymorphicDiscriminator.Notification do
   @moduledoc false
   use ExOpenApiUtils
-  alias OpenApiSpex.Discriminator
 
   alias ExOpenApiUtilsTest.PolymorphicDiscriminator.EmailChannel
   alias ExOpenApiUtilsTest.PolymorphicDiscriminator.SmsChannel
   alias ExOpenApiUtilsTest.PolymorphicDiscriminator.WebhookChannel
-
-  alias ExOpenApiUtilsTest.OpenApiSchema.EmailChannelRequest
-  alias ExOpenApiUtilsTest.OpenApiSchema.EmailChannelResponse
-  alias ExOpenApiUtilsTest.OpenApiSchema.SmsChannelRequest
-  alias ExOpenApiUtilsTest.OpenApiSchema.SmsChannelResponse
-  alias ExOpenApiUtilsTest.OpenApiSchema.WebhookChannelRequest
-  alias ExOpenApiUtilsTest.OpenApiSchema.WebhookChannelResponse
 
   import PolymorphicEmbed
 
@@ -31,41 +23,16 @@ defmodule ExOpenApiUtilsTest.PolymorphicDiscriminator.Notification do
     schema: %Schema{type: :string, example: "Your order has shipped"}
   )
 
-  open_api_property(
+  open_api_polymorphic_property(
     key: :channel,
-    schema: %Schema{
-      type: :object,
-      writeOnly: true,
-      oneOf: [EmailChannelRequest, SmsChannelRequest, WebhookChannelRequest],
-      discriminator: %Discriminator{
-        propertyName: "object_type",
-        mapping: %{
-          "email" => EmailChannelRequest,
-          "sms" => SmsChannelRequest,
-          "webhook" => WebhookChannelRequest
-        }
-      }
-    }
+    type_field_name: :__type__,
+    open_api_discriminator_property: "channel_type",
+    variants: [
+      email: EmailChannel,
+      sms: SmsChannel,
+      webhook: WebhookChannel
+    ]
   )
-
-  open_api_property(
-    key: :channel,
-    schema: %Schema{
-      type: :object,
-      readOnly: true,
-      oneOf: [EmailChannelResponse, SmsChannelResponse, WebhookChannelResponse],
-      discriminator: %Discriminator{
-        propertyName: "object_type",
-        mapping: %{
-          "email" => EmailChannelResponse,
-          "sms" => SmsChannelResponse,
-          "webhook" => WebhookChannelResponse
-        }
-      }
-    }
-  )
-
-  polymorphic_embed_discriminator(key: :channel, type_field_name: :__type__)
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id

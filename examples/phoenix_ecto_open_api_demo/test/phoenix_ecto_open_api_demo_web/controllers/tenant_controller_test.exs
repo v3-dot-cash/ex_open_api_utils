@@ -84,4 +84,27 @@ defmodule PhoenixEctoOpenApiDemoWeb.TenantControllerTest do
     tenant = tenant_fixture()
     %{tenant: tenant}
   end
+
+  describe "Mapper round-trip coverage for TenantResponse" do
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.TenantResponse
+
+    test "Mapper.to_map on a TenantResponse struct emits atom-keyed map" do
+      # Phoenix's Controller.json/2 goes straight to Jason on response
+      # structs, so the derived :from_open_api Mapper impl is only
+      # reachable if a consumer pipes a response struct back through
+      # Mapper.to_map/1 (e.g. for re-serialization via
+      # `response |> Mapper.to_map() |> cast_to_schema(...)`).
+      #
+      # TenantResponse's open_api_schema declares
+      # `properties: [:name, :users]`, so the generated defstruct
+      # excludes :id — the fields below match that exact shape.
+      struct = %TenantResponse{name: "Acme", users: []}
+      map = ExOpenApiUtils.Mapper.to_map(struct)
+
+      assert is_map(map)
+      assert map[:name] == "Acme"
+      assert map[:users] == []
+      refute Map.has_key?(map, :__struct__)
+    end
+  end
 end

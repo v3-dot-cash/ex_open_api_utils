@@ -1,15 +1,9 @@
 defmodule ExOpenApiUtilsTest.PolymorphicDiscriminator.Analytics do
   @moduledoc false
   use ExOpenApiUtils
-  alias OpenApiSpex.Discriminator
 
   alias ExOpenApiUtilsTest.PolymorphicDiscriminator.ClickEvent
   alias ExOpenApiUtilsTest.PolymorphicDiscriminator.PageViewEvent
-
-  alias ExOpenApiUtilsTest.OpenApiSchema.ClickEventRequest
-  alias ExOpenApiUtilsTest.OpenApiSchema.ClickEventResponse
-  alias ExOpenApiUtilsTest.OpenApiSchema.PageViewEventRequest
-  alias ExOpenApiUtilsTest.OpenApiSchema.PageViewEventResponse
 
   import PolymorphicEmbed
 
@@ -20,39 +14,15 @@ defmodule ExOpenApiUtilsTest.PolymorphicDiscriminator.Analytics do
 
   # Wire-side discriminator name differs from Ecto-side type_field_name.
   # Wire uses "kind"; polymorphic_embed uses :event_type.
-  open_api_property(
+  open_api_polymorphic_property(
     key: :event,
-    schema: %Schema{
-      type: :object,
-      writeOnly: true,
-      oneOf: [ClickEventRequest, PageViewEventRequest],
-      discriminator: %Discriminator{
-        propertyName: "kind",
-        mapping: %{
-          "click" => ClickEventRequest,
-          "pageview" => PageViewEventRequest
-        }
-      }
-    }
+    type_field_name: :event_type,
+    open_api_discriminator_property: "kind",
+    variants: [
+      click: ClickEvent,
+      pageview: PageViewEvent
+    ]
   )
-
-  open_api_property(
-    key: :event,
-    schema: %Schema{
-      type: :object,
-      readOnly: true,
-      oneOf: [ClickEventResponse, PageViewEventResponse],
-      discriminator: %Discriminator{
-        propertyName: "kind",
-        mapping: %{
-          "click" => ClickEventResponse,
-          "pageview" => PageViewEventResponse
-        }
-      }
-    }
-  )
-
-  polymorphic_embed_discriminator(key: :event, type_field_name: :event_type)
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
