@@ -1,24 +1,17 @@
 defmodule PhoenixEctoOpenApiDemoWeb.BusinessJSON do
-  alias PhoenixEctoOpenApiDemo.BusinessContext.Business
-
-  @doc """
-  Renders a list of businesses.
+  @moduledoc """
+  JSON renderer for businesses. Uses `ExOpenApiUtils.Mapper.to_map/1`
+  for consistency with the notification, tenant, and user JSON views —
+  the mapper walks the `use ExOpenApiUtils` property list and emits
+  only the schema-declared fields in the right shape without needing
+  to hand-roll a `%{id: ..., name: ...}` map per field.
   """
+
   def index(%{businesses: businesses}) do
-    for(business <- businesses, do: data(business))
+    Enum.map(businesses, &ExOpenApiUtils.Mapper.to_map/1)
   end
 
-  @doc """
-  Renders a single business.
-  """
   def show(%{business: business}) do
-    data(business)
-  end
-
-  defp data(%Business{} = business) do
-    %{
-      id: business.id,
-      name: business.name
-    }
+    ExOpenApiUtils.Mapper.to_map(business)
   end
 end

@@ -576,8 +576,18 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
     defp collect_atoms(_, acc), do: acc
 
     defp literal_atoms_in(module) do
-      beam_path = :code.which(module)
-      refute beam_path in [:non_existing, :preloaded, :cover_compiled]
+      # Build the beam path directly from Mix.Project.compile_path/0
+      # instead of via :code.which/1. Under `mix test --cover` the cover
+      # tool replaces the in-memory loaded module with a cover-instrumented
+      # version, and :code.which/1 then returns :cover_compiled instead
+      # of the on-disk path — which breaks the beam_lib read. The plain
+      # compile's .beam is still on disk untouched, and that's the
+      # artifact GH-27 actually cares about (it's the one the BEAM loader
+      # will materialize in production), so read it directly.
+      beam_path =
+        Mix.Project.compile_path()
+        |> Path.join("#{module}.beam")
+        |> String.to_charlist()
 
       {:ok, {_, [{:abstract_code, {:raw_abstract_v1, forms}}]}} =
         :beam_lib.chunks(beam_path, [:abstract_code])
@@ -601,6 +611,101 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
         )
 
       assert :channel_type in atoms
+    end
+  end
+
+  describe "Mapper round-trip coverage for generated notification submodules" do
+    # Phoenix's Controller.json/2 goes straight to Jason.encode! on
+    # response structs, so the library-derived :from_open_api Mapper
+    # impls on Notification's response submodules and on the original
+    # flat variant submodules never get called through the normal HTTP
+    # pipeline. These tests exercise each one directly by constructing
+    # the struct and calling Mapper.to_map/1, proving that consumers
+    # who want to re-serialize a response struct (for example via
+    # `response |> Mapper.to_map() |> cast_to_schema(NotificationResponse)`)
+    # get the expected atom-keyed shape out.
+
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.EmailRequest
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.EmailResponse
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.SmsRequest
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.SmsResponse
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookRequest
+    alias PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookResponse
+
+    test "Mapper.to_map on NotificationResponse + parent-contextual email channel" do
+      struct = %NotificationResponseSchema{
+        id: "n_123",
+        subject: "Your order has shipped",
+        channel: %NotificationEmailResponse{
+          to: "buyer@example.com",
+          from: "store@example.com",
+          body: "Tracking: 1Z999",
+          channel_type: "email"
+        }
+      }
+
+      map = ExOpenApiUtils.Mapper.to_map(struct)
+
+      assert is_map(map)
+      assert map[:id] == "n_123"
+      assert map[:subject] == "Your order has shipped"
+      assert is_map(map[:channel])
+    end
+
+    test "Mapper.to_map on NotificationResponse + parent-contextual sms channel" do
+      struct = %NotificationResponseSchema{
+        id: "n_124",
+        subject: "Verification code",
+        channel: %NotificationSmsResponse{
+          phone_number: "+15551234567",
+          body: "Your code is 4242",
+          channel_type: "sms"
+        }
+      }
+
+      map = ExOpenApiUtils.Mapper.to_map(struct)
+      assert map[:id] == "n_124"
+      assert is_map(map[:channel])
+    end
+
+    test "Mapper.to_map on NotificationResponse + parent-contextual webhook channel" do
+      struct = %NotificationResponseSchema{
+        id: "n_125",
+        subject: "Order event",
+        channel: %NotificationWebhookResponse{
+          url: "https://hooks.example.com/abc",
+          method: "POST",
+          channel_type: "webhook"
+        }
+      }
+
+      map = ExOpenApiUtils.Mapper.to_map(struct)
+      assert map[:id] == "n_125"
+      assert is_map(map[:channel])
+    end
+
+    test "Mapper.to_map on standalone flat variant Request submodules" do
+      for struct <- [
+            %EmailRequest{to: "a@b", from: "c@d", body: "x"},
+            %SmsRequest{phone_number: "+15551234567", body: "y"},
+            %WebhookRequest{url: "https://example.com", method: "POST"}
+          ] do
+        map = ExOpenApiUtils.Mapper.to_map(struct)
+        assert is_map(map)
+        refute Map.has_key?(map, :__struct__)
+      end
+    end
+
+    test "Mapper.to_map on standalone flat variant Response submodules" do
+      for struct <- [
+            %EmailResponse{to: "a@b", from: "c@d", body: "x"},
+            %SmsResponse{phone_number: "+15551234567", body: "y"},
+            %WebhookResponse{url: "https://example.com", method: "POST"}
+          ] do
+        map = ExOpenApiUtils.Mapper.to_map(struct)
+        assert is_map(map)
+        refute Map.has_key?(map, :__struct__)
+      end
     end
   end
 end
