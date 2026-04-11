@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.14.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.13.1...v0.14.0) (2026-04-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* **example:** migrate polymorphic fixtures to open_api_polymorphic_property
+* **polymorphic:** replace three-macro shape with open_api_polymorphic_property, close GH-30 via allOf siblings
+
+### Features
+
+* **example:** add docker-compose.test.yml with tmpfs Postgres ([873ff59](https://github.com/v3-dot-cash/ex_open_api_utils/commit/873ff590c6630769e791cbaffade14fe2f167d63))
+* **example:** add Makefile for local vitest integration tier ([9b473dc](https://github.com/v3-dot-cash/ex_open_api_utils/commit/9b473dcfa1cad7532386cdfc83fed8d8d8c3e29e))
+* **example:** add mix openapi.dump task for vitest SDK generation ([979256c](https://github.com/v3-dot-cash/ex_open_api_utils/commit/979256cc5142bb00942fcb48b1ce0a5ac147cee9))
+* **example:** add PORT env override to dev endpoint config ([6662a7d](https://github.com/v3-dot-cash/ex_open_api_utils/commit/6662a7dfbc2ab9e7192db81b8037e73da5ea5757))
+* **example:** add vitest integration tests and TypeScript client samples ([e6cc7ca](https://github.com/v3-dot-cash/ex_open_api_utils/commit/e6cc7ca50e9e5fa51298b4a84d38b6280cedd30e))
+* **example:** migrate polymorphic fixtures to open_api_polymorphic_property ([4d569e1](https://github.com/v3-dot-cash/ex_open_api_utils/commit/4d569e16d2d7cc8e9102ee0712629731461b506b))
+* **example:** pivot vitest tier to production-style ky + zod + vite-plugin stack ([25ddd47](https://github.com/v3-dot-cash/ex_open_api_utils/commit/25ddd47117a00a8f6d881f0492eb2ae62e2ed7ed))
+* **example:** scaffold vitest integration-tests package and config ([530e22c](https://github.com/v3-dot-cash/ex_open_api_utils/commit/530e22c91c78ea11ef73c844b74f630956baa047))
+* **example:** serve OpenAPI spec at GET /api/openapi ([cefe25e](https://github.com/v3-dot-cash/ex_open_api_utils/commit/cefe25eccbc29e9b525637b456ca920b3dec52d0))
+* **polymorphic:** replace three-macro shape with open_api_polymorphic_property, close GH-30 via allOf siblings ([1f76b7b](https://github.com/v3-dot-cash/ex_open_api_utils/commit/1f76b7bc4f84f36ed9287b027f72cb99dae6bab3)), closes [#30](https://github.com/v3-dot-cash/ex_open_api_utils/issues/30)
+
 ## [0.13.1](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.13.0...v0.13.1) (2026-04-11)
 
 
