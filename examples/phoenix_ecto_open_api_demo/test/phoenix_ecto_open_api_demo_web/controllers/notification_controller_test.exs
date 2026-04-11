@@ -2,26 +2,49 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
   @moduledoc """
   End-to-end tests for the polymorphic-embed backed `Notification` resource.
 
-  Every test that exercises create/update/show goes through the full Phoenix
-  pipeline with `OpenApiSpex.Plug.CastAndValidate` on the request side, and
-  asserts that the response body conforms to `NotificationResponse` via
-  `OpenApiSpex.TestAssertions.assert_schema/3` AND does a deep field-level
-  comparison on the response payload. The assert_schema call is the GH-21
-  regression lock (schema round-trips through Cast.cast with the full
-  discriminator dispatch path); the deep field assertions are the GH-24
-  regression lock (the wire format on the response side must carry the
-  discriminator inline for each variant).
+  Every create/update/show test:
+
+    1. Goes through the full Phoenix pipeline with
+       `OpenApiSpex.Plug.CastAndValidate` on the request side — the request
+       body is cast into a typed `%NotificationRequest{channel: %*Request{}}`
+       struct via discriminator dispatch before the controller runs.
+
+    2. Takes the raw JSON response body and feeds it back through
+       `OpenApiSpex.Cast.cast/4` against the resolved
+       `NotificationResponse` schema in `@api_spec.components.schemas`.
+       The call uses `read_write_scope: :read` so required `writeOnly`
+       fields are skipped on the response side. On success it returns a
+       real `%NotificationResponseSchema{}` struct whose `:channel` is the
+       correct variant struct (`%EmailResponse{}`, `%SmsResponse{}`, or
+       `%WebhookResponse{}`) dispatched from the oneOf.
+
+    3. Does a full deep pattern-match on the cast struct — every variant
+       field asserted by name and value — and separately verifies the
+       persisted Ecto variant struct hydrated from JSONB matches the same
+       values verbatim.
+
+  The response-side `Cast.cast` call is the GH-21 regression lock (the
+  focused-cast-errors path runs on every test), and the deep channel
+  checks + persistence round-trips are the GH-24 regression lock.
   """
   use PhoenixEctoOpenApiDemoWeb.ConnCase
 
-  import OpenApiSpex.TestAssertions
   import PhoenixEctoOpenApiDemo.NotificationContextFixtures
 
+  alias OpenApiSpex.Cast
   alias PhoenixEctoOpenApiDemo.NotificationContext
   alias PhoenixEctoOpenApiDemo.NotificationContext.Email
   alias PhoenixEctoOpenApiDemo.NotificationContext.Notification
   alias PhoenixEctoOpenApiDemo.NotificationContext.Sms
   alias PhoenixEctoOpenApiDemo.NotificationContext.Webhook
+
+  # Auto-generated OpenApiSpex response submodules. They are real Elixir
+  # structs (OpenApiSpex.schema/1 sets x-struct to the module itself), so
+  # Cast.cast returns typed struct values we can pattern-match on.
+  alias PhoenixEctoOpenApiDemo.OpenApiSchema.EmailResponse
+  alias PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationResponse, as: NotificationResponseSchema
+  alias PhoenixEctoOpenApiDemo.OpenApiSchema.SmsResponse
+  alias PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookResponse
 
   @api_spec PhoenixEctoOpenApiDemoWeb.ApiSpec.spec()
 
@@ -67,120 +90,167 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       assert json_response(conn, 200) == []
     end
 
-    test "returns a mixed list where each channel carries object_type inline", %{conn: conn} do
+    test "returns a mixed list where each channel casts to its variant struct", %{conn: conn} do
       email_notification_fixture()
       sms_notification_fixture()
       webhook_notification_fixture()
 
       conn = get(conn, ~p"/api/notifications")
       body = json_response(conn, 200)
-
       assert length(body) == 3
 
-      for item <- body do
-        assert Map.has_key?(item["channel"], "object_type")
-      end
+      # Cast each item individually against NotificationResponse so the
+      # oneOf dispatch produces a concrete variant struct for every row.
+      schemas = @api_spec.components.schemas
+      notification_schema = Map.fetch!(schemas, "NotificationResponse")
 
-      object_types = body |> Enum.map(& &1["channel"]["object_type"]) |> Enum.sort()
-      assert object_types == ["email", "sms", "webhook"]
+      cast_items =
+        Enum.map(body, fn item ->
+          assert {:ok, cast} =
+                   Cast.cast(notification_schema, item, schemas, read_write_scope: :read)
 
-      email_item = Enum.find(body, &(&1["channel"]["object_type"] == "email"))
-      assert email_item["channel"]["to"] == "buyer@example.com"
-      assert email_item["channel"]["from"] == "store@example.com"
-      assert email_item["channel"]["body"] == "Tracking: 1Z999AA10123456784"
-      assert_schema(email_item, "NotificationResponse", @api_spec)
+          cast
+        end)
 
-      sms_item = Enum.find(body, &(&1["channel"]["object_type"] == "sms"))
-      assert sms_item["channel"]["phone_number"] == "+15551234567"
-      assert sms_item["channel"]["body"] == "Your code is 4242"
-      assert_schema(sms_item, "NotificationResponse", @api_spec)
+      by_variant =
+        Enum.group_by(cast_items, fn
+          %NotificationResponseSchema{channel: %EmailResponse{}} -> :email
+          %NotificationResponseSchema{channel: %SmsResponse{}} -> :sms
+          %NotificationResponseSchema{channel: %WebhookResponse{}} -> :webhook
+        end)
 
-      webhook_item = Enum.find(body, &(&1["channel"]["object_type"] == "webhook"))
-      assert webhook_item["channel"]["url"] == "https://hooks.example.com/abc"
-      assert webhook_item["channel"]["method"] == "POST"
-      assert_schema(webhook_item, "NotificationResponse", @api_spec)
+      assert length(by_variant[:email]) == 1
+      assert length(by_variant[:sms]) == 1
+      assert length(by_variant[:webhook]) == 1
+
+      assert [
+               %NotificationResponseSchema{
+                 id: email_id,
+                 subject: "Your order has shipped",
+                 channel: %EmailResponse{
+                   to: "buyer@example.com",
+                   from: "store@example.com",
+                   body: "Tracking: 1Z999AA10123456784"
+                 }
+               }
+             ] = by_variant[:email]
+
+      assert is_binary(email_id)
+
+      assert [
+               %NotificationResponseSchema{
+                 subject: "Verification code",
+                 channel: %SmsResponse{
+                   phone_number: "+15551234567",
+                   body: "Your code is 4242"
+                 }
+               }
+             ] = by_variant[:sms]
+
+      assert [
+               %NotificationResponseSchema{
+                 subject: "Order event",
+                 channel: %WebhookResponse{
+                   url: "https://hooks.example.com/abc",
+                   method: "POST"
+                 }
+               }
+             ] = by_variant[:webhook]
     end
   end
 
   describe "create email notification" do
-    test "returns 201 with object_type inline and conforming to NotificationResponse", %{
+    test "returns 201, cast body is %NotificationResponseSchema{channel: %EmailResponse{}}", %{
       conn: conn
     } do
       conn = post(conn, ~p"/api/notifications", @email_attrs)
       body = json_response(conn, 201)
 
-      assert %{
-               "id" => id,
-               "subject" => "Your order has shipped",
-               "channel" => %{
-                 "object_type" => "email",
-                 "to" => "buyer@example.com",
-                 "from" => "store@example.com",
-                 "body" => "Tracking: 1Z999AA10123456784"
+      schemas = @api_spec.components.schemas
+      schema = Map.fetch!(schemas, "NotificationResponse")
+
+      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+
+      # Deep pattern match on the cast struct — every variant field checked
+      # by name, variant struct asserted, nothing from other variants
+      # allowed through.
+      assert %NotificationResponseSchema{
+               id: id,
+               subject: "Your order has shipped",
+               channel: %EmailResponse{
+                 to: "buyer@example.com",
+                 from: "store@example.com",
+                 body: "Tracking: 1Z999AA10123456784"
                }
-             } = body
+             } = cast
 
       assert is_binary(id)
-      assert_schema(body, "NotificationResponse", @api_spec)
+      assert {:ok, _} = Ecto.UUID.cast(id)
 
-      persisted = NotificationContext.get_notification!(id)
-      assert %Notification{channel: %Email{} = channel} = persisted
-      assert channel.to == "buyer@example.com"
-      assert channel.from == "store@example.com"
-      assert channel.body == "Tracking: 1Z999AA10123456784"
+      # Persistence round-trip: the Ecto variant struct hydrated from JSONB
+      # must contain every field verbatim.
+      assert %Notification{
+               id: ^id,
+               subject: "Your order has shipped",
+               channel: %Email{
+                 to: "buyer@example.com",
+                 from: "store@example.com",
+                 body: "Tracking: 1Z999AA10123456784"
+               }
+             } = NotificationContext.get_notification!(id)
     end
 
     test "returns 422 when required email field is missing", %{conn: conn} do
-      invalid = %{
-        subject: "x",
-        channel: %{object_type: "email", to: "a@b"}
-      }
-
+      invalid = %{subject: "x", channel: %{object_type: "email", to: "a@b"}}
       conn = post(conn, ~p"/api/notifications", invalid)
       assert %{"errors" => _} = json_response(conn, 422)
     end
 
     test "returns 422 when discriminator is missing (:no_value_for_discriminator)", %{conn: conn} do
-      invalid = %{
-        subject: "x",
-        channel: %{to: "a@b", from: "c@d", body: "e"}
-      }
-
+      invalid = %{subject: "x", channel: %{to: "a@b", from: "c@d", body: "e"}}
       conn = post(conn, ~p"/api/notifications", invalid)
       assert %{"errors" => _} = json_response(conn, 422)
     end
 
     test "returns 422 when discriminator is bogus (:invalid_discriminator_value)", %{conn: conn} do
-      invalid = %{
-        subject: "x",
-        channel: %{object_type: "carrier_pigeon"}
-      }
-
+      invalid = %{subject: "x", channel: %{object_type: "carrier_pigeon"}}
       conn = post(conn, ~p"/api/notifications", invalid)
       assert %{"errors" => _} = json_response(conn, 422)
     end
   end
 
   describe "create sms notification" do
-    test "returns 201 with object_type=sms and conforming to NotificationResponse", %{conn: conn} do
+    test "returns 201, cast body is %NotificationResponseSchema{channel: %SmsResponse{}}", %{
+      conn: conn
+    } do
       conn = post(conn, ~p"/api/notifications", @sms_attrs)
       body = json_response(conn, 201)
 
-      assert %{
-               "id" => id,
-               "subject" => "Verification code",
-               "channel" => %{
-                 "object_type" => "sms",
-                 "phone_number" => "+15551234567",
-                 "body" => "Your code is 4242"
+      schemas = @api_spec.components.schemas
+      schema = Map.fetch!(schemas, "NotificationResponse")
+
+      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+
+      assert %NotificationResponseSchema{
+               id: id,
+               subject: "Verification code",
+               channel: %SmsResponse{
+                 phone_number: "+15551234567",
+                 body: "Your code is 4242"
                }
-             } = body
+             } = cast
 
       assert is_binary(id)
-      assert_schema(body, "NotificationResponse", @api_spec)
+      assert {:ok, _} = Ecto.UUID.cast(id)
 
-      assert %Notification{channel: %Sms{phone_number: "+15551234567"}} =
-               NotificationContext.get_notification!(id)
+      assert %Notification{
+               id: ^id,
+               subject: "Verification code",
+               channel: %Sms{
+                 phone_number: "+15551234567",
+                 body: "Your code is 4242"
+               }
+             } = NotificationContext.get_notification!(id)
     end
 
     test "returns 422 when phone_number missing", %{conn: conn} do
@@ -197,27 +267,37 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
   end
 
   describe "create webhook notification" do
-    test "returns 201 with object_type=webhook and conforming to NotificationResponse", %{
+    test "returns 201, cast body is %NotificationResponseSchema{channel: %WebhookResponse{}}", %{
       conn: conn
     } do
       conn = post(conn, ~p"/api/notifications", @webhook_attrs)
       body = json_response(conn, 201)
 
-      assert %{
-               "id" => id,
-               "subject" => "Order event",
-               "channel" => %{
-                 "object_type" => "webhook",
-                 "url" => "https://hooks.example.com/abc",
-                 "method" => "POST"
+      schemas = @api_spec.components.schemas
+      schema = Map.fetch!(schemas, "NotificationResponse")
+
+      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+
+      assert %NotificationResponseSchema{
+               id: id,
+               subject: "Order event",
+               channel: %WebhookResponse{
+                 url: "https://hooks.example.com/abc",
+                 method: "POST"
                }
-             } = body
+             } = cast
 
       assert is_binary(id)
-      assert_schema(body, "NotificationResponse", @api_spec)
+      assert {:ok, _} = Ecto.UUID.cast(id)
 
-      assert %Notification{channel: %Webhook{url: "https://hooks.example.com/abc", method: "POST"}} =
-               NotificationContext.get_notification!(id)
+      assert %Notification{
+               id: ^id,
+               subject: "Order event",
+               channel: %Webhook{
+                 url: "https://hooks.example.com/abc",
+                 method: "POST"
+               }
+             } = NotificationContext.get_notification!(id)
     end
 
     test "returns 422 when method is not one of the enum", %{conn: conn} do
@@ -236,38 +316,71 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
   end
 
   describe "show notification" do
-    test "shows an email notification with object_type inline", %{conn: conn} do
+    test "shows an email notification, cast.channel is %EmailResponse{}", %{conn: conn} do
       notification = email_notification_fixture()
 
       conn = get(conn, ~p"/api/notifications/#{notification.id}")
       body = json_response(conn, 200)
 
-      assert body["id"] == notification.id
-      assert body["channel"]["object_type"] == "email"
-      assert body["channel"]["to"] == "buyer@example.com"
-      assert_schema(body, "NotificationResponse", @api_spec)
+      schemas = @api_spec.components.schemas
+      schema = Map.fetch!(schemas, "NotificationResponse")
+      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+
+      assert %NotificationResponseSchema{
+               id: notification_id,
+               subject: "Your order has shipped",
+               channel: %EmailResponse{
+                 to: "buyer@example.com",
+                 from: "store@example.com",
+                 body: "Tracking: 1Z999AA10123456784"
+               }
+             } = cast
+
+      assert notification_id == notification.id
     end
 
-    test "shows an sms notification with object_type inline", %{conn: conn} do
+    test "shows an sms notification, cast.channel is %SmsResponse{}", %{conn: conn} do
       notification = sms_notification_fixture()
 
       conn = get(conn, ~p"/api/notifications/#{notification.id}")
       body = json_response(conn, 200)
 
-      assert body["channel"]["object_type"] == "sms"
-      assert body["channel"]["phone_number"] == "+15551234567"
-      assert_schema(body, "NotificationResponse", @api_spec)
+      schemas = @api_spec.components.schemas
+      schema = Map.fetch!(schemas, "NotificationResponse")
+      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+
+      assert %NotificationResponseSchema{
+               id: notification_id,
+               subject: "Verification code",
+               channel: %SmsResponse{
+                 phone_number: "+15551234567",
+                 body: "Your code is 4242"
+               }
+             } = cast
+
+      assert notification_id == notification.id
     end
 
-    test "shows a webhook notification with object_type inline", %{conn: conn} do
+    test "shows a webhook notification, cast.channel is %WebhookResponse{}", %{conn: conn} do
       notification = webhook_notification_fixture()
 
       conn = get(conn, ~p"/api/notifications/#{notification.id}")
       body = json_response(conn, 200)
 
-      assert body["channel"]["object_type"] == "webhook"
-      assert body["channel"]["method"] == "POST"
-      assert_schema(body, "NotificationResponse", @api_spec)
+      schemas = @api_spec.components.schemas
+      schema = Map.fetch!(schemas, "NotificationResponse")
+      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+
+      assert %NotificationResponseSchema{
+               id: notification_id,
+               subject: "Order event",
+               channel: %WebhookResponse{
+                 url: "https://hooks.example.com/abc",
+                 method: "POST"
+               }
+             } = cast
+
+      assert notification_id == notification.id
     end
 
     test "returns 404 for a non-existent id", %{conn: conn} do
@@ -278,7 +391,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
   end
 
   describe "update notification" do
-    test "updates only the subject", %{conn: conn} do
+    test "updates only the subject, cast.channel still %EmailResponse{}", %{conn: conn} do
       notification = email_notification_fixture()
 
       update_attrs = %{
@@ -294,10 +407,21 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       conn = put(conn, ~p"/api/notifications/#{notification}", update_attrs)
       body = json_response(conn, 200)
 
-      assert body["id"] == notification.id
-      assert body["subject"] == "Updated subject"
-      assert body["channel"]["object_type"] == "email"
-      assert_schema(body, "NotificationResponse", @api_spec)
+      schemas = @api_spec.components.schemas
+      schema = Map.fetch!(schemas, "NotificationResponse")
+      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
+
+      assert %NotificationResponseSchema{
+               id: id,
+               subject: "Updated subject",
+               channel: %EmailResponse{
+                 to: "buyer@example.com",
+                 from: "store@example.com",
+                 body: "Tracking: 1Z999AA10123456784"
+               }
+             } = cast
+
+      assert id == notification.id
     end
 
     test "switches channel variant from email to sms (on_replace: :update)", %{conn: conn} do
@@ -315,13 +439,29 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       conn = put(conn, ~p"/api/notifications/#{notification}", update_attrs)
       body = json_response(conn, 200)
 
-      assert body["id"] == notification.id
-      assert body["channel"]["object_type"] == "sms"
-      assert body["channel"]["phone_number"] == "+15551234567"
-      refute Map.has_key?(body["channel"], "to")
-      assert_schema(body, "NotificationResponse", @api_spec)
+      schemas = @api_spec.components.schemas
+      schema = Map.fetch!(schemas, "NotificationResponse")
+      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
 
-      assert %Notification{channel: %Sms{}} = NotificationContext.get_notification!(notification.id)
+      # The channel must have cast into the new variant, not the original.
+      assert %NotificationResponseSchema{
+               id: id,
+               subject: "Now over SMS",
+               channel: %SmsResponse{
+                 phone_number: "+15551234567",
+                 body: "Your code is 4242"
+               }
+             } = cast
+
+      assert id == notification.id
+
+      assert %Notification{
+               id: ^id,
+               channel: %Sms{
+                 phone_number: "+15551234567",
+                 body: "Your code is 4242"
+               }
+             } = NotificationContext.get_notification!(id)
     end
 
     test "switches channel variant from sms to webhook", %{conn: conn} do
@@ -339,12 +479,28 @@ defmodule PhoenixEctoOpenApiDemoWeb.NotificationControllerTest do
       conn = put(conn, ~p"/api/notifications/#{notification}", update_attrs)
       body = json_response(conn, 200)
 
-      assert body["channel"]["object_type"] == "webhook"
-      assert body["channel"]["url"] == "https://hooks.example.com/new"
-      assert_schema(body, "NotificationResponse", @api_spec)
+      schemas = @api_spec.components.schemas
+      schema = Map.fetch!(schemas, "NotificationResponse")
+      assert {:ok, cast} = Cast.cast(schema, body, schemas, read_write_scope: :read)
 
-      assert %Notification{channel: %Webhook{}} =
-               NotificationContext.get_notification!(notification.id)
+      assert %NotificationResponseSchema{
+               id: id,
+               subject: "Now over webhook",
+               channel: %WebhookResponse{
+                 url: "https://hooks.example.com/new",
+                 method: "POST"
+               }
+             } = cast
+
+      assert id == notification.id
+
+      assert %Notification{
+               id: ^id,
+               channel: %Webhook{
+                 url: "https://hooks.example.com/new",
+                 method: "POST"
+               }
+             } = NotificationContext.get_notification!(id)
     end
 
     test "returns 422 when update is invalid", %{conn: conn} do
