@@ -124,6 +124,7 @@ defmodule ExOpenApiUtils.NestedPolymorphicCastRoundTripTest do
       # Wire-side discriminators (the existing discriminator_prop walker keeps these working)
       assert get_in(attrs_map, [:destination, :destination_type]) == "webhook"
       assert get_in(attrs_map, [:destination, :auth, :auth_type]) == "oauth"
+
       assert get_in(attrs_map, [:destination, :auth, :grant, :grant_type]) ==
                "client_credentials"
     end
@@ -341,6 +342,7 @@ defmodule ExOpenApiUtils.NestedPolymorphicCastRoundTripTest do
 
       assert get_in(wire, ["destination", "destination_type"]) == "webhook"
       assert get_in(wire, ["destination", "auth", "auth_type"]) == "oauth"
+
       assert get_in(wire, ["destination", "auth", "grant", "grant_type"]) ==
                "client_credentials"
     end

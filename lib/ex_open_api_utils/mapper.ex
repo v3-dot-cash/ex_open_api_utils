@@ -9,71 +9,82 @@ defimpl ExOpenApiUtils.Mapper, for: Any do
     property_attrs = Keyword.fetch!(opts, :property_attrs)
     map_direction = Keyword.fetch!(opts, :map_direction)
     polymorphic_variants = Keyword.get(opts, :polymorphic_variants, %{})
+    # GH-34 self-stamping — at parent-contextual sibling derive time, the
+    # parent passes its own discriminator atom and wire value so the sibling's
+    # generated walker can stamp :__type__ on its own result map from
+    # compile-time constants, with no dependency on the outer walker's
+    # polymorphic_variants map knowing about nested polymorphic fields.
+    self_stamp_atom = Keyword.get(opts, :self_stamp_atom)
+    self_stamp_wire = Keyword.get(opts, :self_stamp_wire)
+    self_stamp_ast = build_self_stamp_ast(self_stamp_atom, self_stamp_wire)
 
     quote do
       alias ExOpenApiUtils.Property
 
       defimpl ExOpenApiUtils.Mapper, for: unquote(module) do
         def to_map(arg) do
-          case unquote(map_direction) do
-            :from_ecto ->
-              Enum.reduce(unquote(Macro.escape(property_attrs)), %{}, fn %Property{} = property,
-                                                                         acc ->
-                source = property.source || property.key
+          result =
+            case unquote(map_direction) do
+              :from_ecto ->
+                Enum.reduce(unquote(Macro.escape(property_attrs)), %{}, fn %Property{} = property,
+                                                                           acc ->
+                  source = property.source || property.key
 
-                val =
-                  if is_list(source) do
-                    Enum.reduce(source, arg, fn key, acc ->
-                      if acc, do: Map.get(acc, key)
+                  val =
+                    if is_list(source) do
+                      Enum.reduce(source, arg, fn key, acc ->
+                        if acc, do: Map.get(acc, key)
+                      end)
+                    else
+                      Map.get(arg, source)
+                    end
+
+                  raw_val = val
+                  val = val |> ExOpenApiUtils.Mapper.to_map()
+
+                  val =
+                    ExOpenApiUtils.Mapper.Polymorphic.inject(
+                      val,
+                      raw_val,
+                      property.key,
+                      unquote(Macro.escape(polymorphic_variants)),
+                      :from_ecto
+                    )
+
+                  Map.put(acc, Atom.to_string(property.key), val)
+                end)
+
+              :from_open_api ->
+                Enum.reduce(unquote(Macro.escape(property_attrs)), %{}, fn %Property{} = property,
+                                                                           acc ->
+                  destination = property.source || property.key
+
+                  raw_val = Map.get(arg, property.key)
+                  val = raw_val |> ExOpenApiUtils.Mapper.to_map()
+
+                  val =
+                    ExOpenApiUtils.Mapper.Polymorphic.inject(
+                      val,
+                      raw_val,
+                      property.key,
+                      unquote(Macro.escape(polymorphic_variants)),
+                      :from_open_api
+                    )
+
+                  if is_list(destination) do
+                    [root | rest] = destination
+                    exploded_map = ExOpenApiUtils.Mapper.Utils.explode_map(rest, val)
+
+                    Map.update(acc, root, %{}, fn existing ->
+                      Map.merge(existing, exploded_map)
                     end)
                   else
-                    Map.get(arg, source)
+                    Map.put(acc, destination, val)
                   end
+                end)
+            end
 
-                raw_val = val
-                val = val |> ExOpenApiUtils.Mapper.to_map()
-
-                val =
-                  ExOpenApiUtils.Mapper.Polymorphic.inject(
-                    val,
-                    raw_val,
-                    property.key,
-                    unquote(Macro.escape(polymorphic_variants)),
-                    :from_ecto
-                  )
-
-                Map.put(acc, Atom.to_string(property.key), val)
-              end)
-
-            :from_open_api ->
-              Enum.reduce(unquote(Macro.escape(property_attrs)), %{}, fn %Property{} = property,
-                                                                         acc ->
-                destination = property.source || property.key
-
-                raw_val = Map.get(arg, property.key)
-                val = raw_val |> ExOpenApiUtils.Mapper.to_map()
-
-                val =
-                  ExOpenApiUtils.Mapper.Polymorphic.inject(
-                    val,
-                    raw_val,
-                    property.key,
-                    unquote(Macro.escape(polymorphic_variants)),
-                    :from_open_api
-                  )
-
-                if is_list(destination) do
-                  [root | rest] = destination
-                  exploded_map = ExOpenApiUtils.Mapper.Utils.explode_map(rest, val)
-
-                  Map.update(acc, root, %{}, fn existing ->
-                    Map.merge(existing, exploded_map)
-                  end)
-                else
-                  Map.put(acc, destination, val)
-                end
-              end)
-          end
+          unquote(self_stamp_ast)
         end
       end
     end
@@ -82,6 +93,21 @@ defimpl ExOpenApiUtils.Mapper, for: Any do
   def to_map(val) do
     val
   end
+
+  # GH-34 — compile-time helper that builds the optional `Map.put(result,
+  # atom, wire)` splice appended to the tail of each derived sibling's
+  # `to_map/1` body. When a parent-contextual sibling's derive passes
+  # `self_stamp_atom` + `self_stamp_wire`, the sibling stamps its own
+  # discriminator on its own result map; otherwise the splice is a no-op
+  # that just returns `result`.
+  defp build_self_stamp_ast(atom, wire)
+       when is_atom(atom) and not is_nil(atom) and is_binary(wire) do
+    quote do
+      Map.put(result, unquote(atom), unquote(wire))
+    end
+  end
+
+  defp build_self_stamp_ast(_atom, _wire), do: quote(do: result)
 end
 
 defimpl ExOpenApiUtils.Mapper, for: [Map] do
