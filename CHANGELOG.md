@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.14.0...v0.15.0) (2026-04-11)
+
+
+### Features
+
+* **mapper:** add self_stamp_atom / self_stamp_wire splice to Any.__deriving__/3 ([03f5318](https://github.com/v3-dot-cash/ex_open_api_utils/commit/03f531843d14b6d7e9dab47f301545dca00fe183)), closes [#34](https://github.com/v3-dot-cash/ex_open_api_utils/issues/34)
+* **polymorphic:** pass self_stamp options through parent-contextual sibling derive loop ([ace86ca](https://github.com/v3-dot-cash/ex_open_api_utils/commit/ace86cac9a0fedf93fcdef5a23e5af9b5f664803)), closes [#34](https://github.com/v3-dot-cash/ex_open_api_utils/issues/34)
+
 ## [0.14.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.13.1...v0.14.0) (2026-04-11)
 
 
