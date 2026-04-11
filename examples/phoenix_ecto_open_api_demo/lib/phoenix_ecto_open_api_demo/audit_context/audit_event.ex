@@ -7,7 +7,7 @@ defmodule PhoenixEctoOpenApiDemo.AuditContext.AuditEvent do
 
     1. **Context-only surface.** There is no controller wired for audit
        events — the library consumer interacts only with the Ecto context.
-       Proves `polymorphic_embed_discriminator/1` does not require a Phoenix
+       Proves `open_api_polymorphic_property/1` does not require a Phoenix
        controller boundary to function.
     2. **Unique discriminator propertyName.** The wire discriminator is
        `"audit_kind"`, which is deliberately chosen so that `:audit_kind`
@@ -21,20 +21,11 @@ defmodule PhoenixEctoOpenApiDemo.AuditContext.AuditEvent do
   is `:__audit_type__`, distinct from the wire-side `"audit_kind"`.
   """
   use ExOpenApiUtils
-  alias OpenApiSpex.Discriminator
 
   alias PhoenixEctoOpenApiDemo.AuditContext.DataExportEvent
   alias PhoenixEctoOpenApiDemo.AuditContext.UserLoginEvent
 
-  alias PhoenixEctoOpenApiDemo.OpenApiSchema.DataExportEventRequest
-  alias PhoenixEctoOpenApiDemo.OpenApiSchema.DataExportEventResponse
-  alias PhoenixEctoOpenApiDemo.OpenApiSchema.UserLoginEventRequest
-  alias PhoenixEctoOpenApiDemo.OpenApiSchema.UserLoginEventResponse
-
   import PolymorphicEmbed
-
-  Code.ensure_compiled!(UserLoginEvent)
-  Code.ensure_compiled!(DataExportEvent)
 
   open_api_property(
     key: :id,
@@ -51,39 +42,15 @@ defmodule PhoenixEctoOpenApiDemo.AuditContext.AuditEvent do
     schema: %Schema{type: :string, example: "api-token-42"}
   )
 
-  open_api_property(
+  open_api_polymorphic_property(
     key: :payload,
-    schema: %Schema{
-      type: :object,
-      writeOnly: true,
-      oneOf: [UserLoginEventRequest, DataExportEventRequest],
-      discriminator: %Discriminator{
-        propertyName: "audit_kind",
-        mapping: %{
-          "user_login" => UserLoginEventRequest,
-          "data_export" => DataExportEventRequest
-        }
-      }
-    }
+    type_field_name: :__audit_type__,
+    open_api_discriminator_property: "audit_kind",
+    variants: [
+      user_login: UserLoginEvent,
+      data_export: DataExportEvent
+    ]
   )
-
-  open_api_property(
-    key: :payload,
-    schema: %Schema{
-      type: :object,
-      readOnly: true,
-      oneOf: [UserLoginEventResponse, DataExportEventResponse],
-      discriminator: %Discriminator{
-        propertyName: "audit_kind",
-        mapping: %{
-          "user_login" => UserLoginEventResponse,
-          "data_export" => DataExportEventResponse
-        }
-      }
-    }
-  )
-
-  polymorphic_embed_discriminator(key: :payload, type_field_name: :__audit_type__)
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
