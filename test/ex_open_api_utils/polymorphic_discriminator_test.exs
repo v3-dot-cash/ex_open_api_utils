@@ -675,6 +675,43 @@ defmodule ExOpenApiUtils.PolymorphicDiscriminatorTest do
         end
       end
     end
+
+    test "macro rejects :variants entry whose value is not a module reference" do
+      assert_raise ArgumentError, ~r/must reference a module/, fn ->
+        defmodule Test.PolyCheck.BadVariantValue do
+          use ExOpenApiUtils
+
+          # `email: 42` parses as the keyword pair `{:email, 42}`. The
+          # macro's `{wire, mod_ast} when is_atom(wire)` branch matches,
+          # `Macro.expand(42, __CALLER__)` returns 42 unchanged, and the
+          # `unless is_atom(expanded)` guard raises.
+          open_api_polymorphic_property(
+            key: :channel,
+            type_field_name: :__type__,
+            open_api_discriminator_property: "channel_type",
+            variants: [email: 42]
+          )
+        end
+      end
+    end
+
+    test "macro rejects :variants entry that isn't a {wire, module} pair" do
+      assert_raise ArgumentError, ~r/\{atom_wire_value, ModuleRef\} pair/, fn ->
+        defmodule Test.PolyCheck.BadVariantShape do
+          use ExOpenApiUtils
+
+          # A bare string inside the variants list is not a 2-tuple, so
+          # it falls through the pattern match to the `bad -> raise`
+          # clause.
+          open_api_polymorphic_property(
+            key: :channel,
+            type_field_name: :__type__,
+            open_api_discriminator_property: "channel_type",
+            variants: ["not a pair"]
+          )
+        end
+      end
+    end
   end
 
   describe "discriminator propertyName atom persistence (GH-27 regression lock)" do
