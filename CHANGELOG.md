@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.13.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.12.0...v0.13.0) (2026-04-11)
+
+
+### Features
+
+* **example:** wire notifications resource with polymorphic_embed_discriminator and full controller test coverage ([e92a3e2](https://github.com/v3-dot-cash/ex_open_api_utils/commit/e92a3e2d84e5b633c35d0746126391e9db84145c))
+* **polymorphic:** add polymorphic_embed_discriminator macro bridging polymorphic_embed to OpenAPI discriminator ([50fe939](https://github.com/v3-dot-cash/ex_open_api_utils/commit/50fe9397a6ab149b11d8809262aae03d428dd54f))
+* **polymorphic:** close GH-24 runtime round-trip via polymorphic_embed_discriminator macro ([2f953c4](https://github.com/v3-dot-cash/ex_open_api_utils/commit/2f953c4f641e99850ebb2db8488962efa715798d))
+
 ## [0.12.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.11.2...v0.12.0) (2026-04-10)
 
 
