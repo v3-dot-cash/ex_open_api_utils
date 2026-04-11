@@ -2,6 +2,7 @@
 
 OpenAPI 3.2 schema generation from Ecto schemas for Elixir/Phoenix applications.
 
+[![CI](https://github.com/v3-dot-cash/ex_open_api_utils/actions/workflows/ci.yml/badge.svg)](https://github.com/v3-dot-cash/ex_open_api_utils/actions/workflows/ci.yml)
 [![Module Version](https://img.shields.io/hexpm/v/ex_open_api_utils.svg)](https://hex.pm/packages/ex_open_api_utils)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/ex_open_api_utils/)
 [![Total Download](https://img.shields.io/hexpm/dt/ex_open_api_utils.svg)](https://hex.pm/packages/ex_open_api_utils)
