@@ -387,6 +387,20 @@ defmodule ExOpenApiUtils do
         entry = Map.fetch!(polymorphic_variants, decl.key)
 
         for variant <- entry.variant_entries do
+          # Two distinct discriminator stamps happen on the sibling's Mapper
+          # result map, both derived from the same entry + variant inputs:
+          #
+          #   1. WIRE discriminator (e.g. `:destination_type => "webhook"`) —
+          #      `discriminator_prop` is appended to `property_attrs` below so
+          #      the sibling's walker emits it like any other property.
+          #
+          #   2. ECTO type-field discriminator (e.g. `:__type__ => "webhook"`)
+          #      — `self_stamp_atom` / `self_stamp_wire` below are read by
+          #      `Any.__deriving__/3` (GH-34) and spliced as a final
+          #      `Map.put(result, atom, wire)` at the tail of the generated
+          #      walker body, so nested polymorphic cases get their Ecto
+          #      atom at every level without relying on the outer walker's
+          #      `polymorphic_variants` knowing about nested keys.
           discriminator_prop = %ExOpenApiUtils.Property{
             key: entry.discriminator_atom,
             source: entry.discriminator_atom,
@@ -401,7 +415,9 @@ defmodule ExOpenApiUtils do
             variant.parent_contextual_request_submodule,
             property_attrs: request_attrs,
             map_direction: :from_open_api,
-            polymorphic_variants: polymorphic_variants
+            polymorphic_variants: polymorphic_variants,
+            self_stamp_atom: entry.type_field_atom,
+            self_stamp_wire: variant.wire
           )
 
           Protocol.derive(
@@ -409,7 +425,9 @@ defmodule ExOpenApiUtils do
             variant.parent_contextual_response_submodule,
             property_attrs: response_attrs,
             map_direction: :from_open_api,
-            polymorphic_variants: polymorphic_variants
+            polymorphic_variants: polymorphic_variants,
+            self_stamp_atom: entry.type_field_atom,
+            self_stamp_wire: variant.wire
           )
         end
       end

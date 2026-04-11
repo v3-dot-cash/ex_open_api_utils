@@ -24,6 +24,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.Router do
     resources "/users", UserController, except: [:new, :edit]
     resources "/businesses", BusinessController, except: [:new, :edit]
     resources "/notifications", NotificationController, except: [:new, :edit]
+    resources "/subscriptions", SubscriptionController, except: [:new, :edit]
   end
 
   # Enable Swoosh mailbox preview in development
