@@ -51,7 +51,12 @@ defimpl ExOpenApiUtils.Mapper, for: Any do
                       :from_ecto
                     )
 
-                  Map.put(acc, Atom.to_string(property.key), val)
+                  ExOpenApiUtils.Mapper.Utils.nil_aware_put(
+                    acc,
+                    Atom.to_string(property.key),
+                    val,
+                    property.schema
+                  )
                 end)
 
               :from_open_api ->
@@ -75,11 +80,20 @@ defimpl ExOpenApiUtils.Mapper, for: Any do
                     [root | rest] = destination
                     exploded_map = ExOpenApiUtils.Mapper.Utils.explode_map(rest, val)
 
-                    Map.update(acc, root, %{}, fn existing ->
-                      Map.merge(existing, exploded_map)
-                    end)
+                    ExOpenApiUtils.Mapper.Utils.nil_aware_merge(
+                      acc,
+                      root,
+                      exploded_map,
+                      val,
+                      property.schema
+                    )
                   else
-                    Map.put(acc, destination, val)
+                    ExOpenApiUtils.Mapper.Utils.nil_aware_put(
+                      acc,
+                      destination,
+                      val,
+                      property.schema
+                    )
                   end
                 end)
             end
@@ -141,6 +155,24 @@ defmodule ExOpenApiUtils.Mapper.Utils do
 
   def explode_map([], val) do
     val
+  end
+
+  # GH-38 — nil-aware put that respects OpenAPI nullable semantics.
+  # Pattern-matched on val so non-nil values skip the nullable check entirely.
+  def nil_aware_put(acc, key, nil, %{nullable: true}), do: Map.put(acc, key, nil)
+  def nil_aware_put(acc, _key, nil, _schema), do: acc
+  def nil_aware_put(acc, key, val, _schema), do: Map.put(acc, key, val)
+
+  # GH-38 — nil-aware merge for list-destination properties (source: [:a, :b]).
+  # Same nullable semantics as nil_aware_put, but uses Map.update for nested paths.
+  def nil_aware_merge(acc, root, exploded, nil, %{nullable: true}) do
+    Map.update(acc, root, %{}, fn existing -> Map.merge(existing, exploded) end)
+  end
+
+  def nil_aware_merge(acc, _root, _exploded, nil, _schema), do: acc
+
+  def nil_aware_merge(acc, root, exploded, _val, _schema) do
+    Map.update(acc, root, %{}, fn existing -> Map.merge(existing, exploded) end)
   end
 end
 
