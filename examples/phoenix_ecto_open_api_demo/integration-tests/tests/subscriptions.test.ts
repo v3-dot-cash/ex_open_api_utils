@@ -69,6 +69,7 @@ describe("POST /api/subscriptions — nesting depth 3 (webhook → oauth → cli
           destination_type: "webhook",
           url: "https://hooks.example.com/orders",
           method: "POST",
+          retry_after: null,
           auth: {
             auth_type: "oauth",
             token_url: "https://auth.example.com/oauth/token",
@@ -132,6 +133,7 @@ describe("POST /api/subscriptions — nesting depth 3 (webhook → oauth → aut
           destination_type: "webhook",
           url: "https://hooks.example.com/authz",
           method: "POST",
+          retry_after: "60",
           auth: {
             auth_type: "oauth",
             token_url: "https://auth.example.com/oauth/token",
@@ -182,6 +184,7 @@ describe("POST /api/subscriptions — nesting depth 2 (webhook → basic)", () =
           destination_type: "webhook",
           url: "https://hooks.example.com/infra",
           method: "POST",
+          retry_after: "120",
           auth: {
             auth_type: "basic",
             username: "alice",
@@ -240,6 +243,7 @@ describe("GET /api/subscriptions/:id — 3-level nested round-trip preserves all
           destination_type: "webhook",
           url: "https://hooks.example.com/roundtrip",
           method: "POST",
+          retry_after: null,
           auth: {
             auth_type: "oauth",
             token_url: "https://auth.example.com/oauth/token",
@@ -280,5 +284,168 @@ describe("GET /api/subscriptions/:id — 3-level nested round-trip preserves all
         );
       }
     }
+  });
+});
+
+/**
+ * GH-38 nil-stripping: required × nullable matrix on WebhookDestination.
+ *
+ *   ┌──────────┬──────────────────────────┬──────────────────────────┐
+ *   │          │ nullable: false           │ nullable: true           │
+ *   ├──────────┼──────────────────────────┼──────────────────────────┤
+ *   │ required │ url, method              │ retry_after              │
+ *   ├──────────┼──────────────────────────┼──────────────────────────┤
+ *   │ optional │ timeout_ms               │ description              │
+ *   └──────────┴──────────────────────────┴──────────────────────────┘
+ *
+ * Also: scope on ClientCredentialsGrant is optional non-nullable.
+ */
+
+describe("GH-38 — optional non-nullable absent from response when not sent", () => {
+  test("POST without timeout_ms and scope omits both keys from response JSON", async () => {
+    const { data, error, response } = await subscriptionCreate({
+      body: {
+        name: "Minimal webhook",
+        destination: {
+          destination_type: "webhook",
+          url: "https://hooks.example.com/minimal",
+          method: "POST",
+          retry_after: "30",
+          auth: {
+            auth_type: "oauth",
+            token_url: "https://auth.example.com/oauth/token",
+            client_id: "client-minimal",
+            grant: {
+              grant_type: "client_credentials",
+              client_secret: "sk-minimal-secret",
+            },
+          },
+        },
+      },
+    });
+
+    expect(error).toBeUndefined();
+    expect(response.status).toBe(201);
+
+    const raw = data as Record<string, unknown>;
+    const dest = raw.destination as Record<string, unknown>;
+
+    // optional non-nullable not sent → key absent
+    expect(dest).not.toHaveProperty("timeout_ms");
+
+    // nested optional non-nullable (scope) not sent → key absent
+    const auth = dest.auth as Record<string, unknown>;
+    const grant = auth.grant as Record<string, unknown>;
+    expect(grant).not.toHaveProperty("scope");
+
+    // required fields still present
+    expect(dest.url).toBe("https://hooks.example.com/minimal");
+    expect(dest.retry_after).toBe("30");
+  });
+});
+
+describe("GH-38 — all fields filled emits every key", () => {
+  test("POST with timeout_ms, description, and scope returns all keys in response", async () => {
+    const { data, error, response } = await subscriptionCreate({
+      body: {
+        name: "Full webhook",
+        destination: {
+          destination_type: "webhook",
+          url: "https://hooks.example.com/full",
+          method: "POST",
+          retry_after: null,
+          timeout_ms: 5000,
+          description: "Primary order hook",
+          auth: {
+            auth_type: "oauth",
+            token_url: "https://auth.example.com/oauth/token",
+            client_id: "client-full",
+            grant: {
+              grant_type: "client_credentials",
+              client_secret: "sk-full-secret",
+              scope: "read:events write:webhooks",
+            },
+          },
+        },
+      },
+    });
+
+    expect(error).toBeUndefined();
+    expect(response.status).toBe(201);
+
+    const raw = data as Record<string, unknown>;
+    const dest = raw.destination as Record<string, unknown>;
+
+    // required non-nullable — always present
+    expect(dest.url).toBe("https://hooks.example.com/full");
+    expect(dest.method).toBe("POST");
+
+    // required nullable with null — key present, value null
+    expect(dest).toHaveProperty("retry_after");
+    expect(dest.retry_after).toBeNull();
+
+    // optional non-nullable with value — key present
+    expect(dest.timeout_ms).toBe(5000);
+
+    // optional nullable with value — key present
+    expect(dest.description).toBe("Primary order hook");
+
+    // nested optional non-nullable with value
+    const auth = dest.auth as Record<string, unknown>;
+    const grant = auth.grant as Record<string, unknown>;
+    expect(grant.scope).toBe("read:events write:webhooks");
+  });
+});
+
+describe("GH-38 — required nullable field with null vs non-null", () => {
+  test("retry_after: null emits key with null, retry_after: '120' emits value", async () => {
+    // With null
+    const { data: d1 } = await subscriptionCreate({
+      body: {
+        name: "Null retry",
+        destination: {
+          destination_type: "webhook",
+          url: "https://hooks.example.com/null-retry",
+          method: "POST",
+          retry_after: null,
+          auth: {
+            auth_type: "basic",
+            username: "alice",
+            password: "s3cret",
+          },
+        },
+      },
+    });
+
+    const dest1 = (d1 as Record<string, unknown>).destination as Record<
+      string,
+      unknown
+    >;
+    expect(dest1).toHaveProperty("retry_after");
+    expect(dest1.retry_after).toBeNull();
+
+    // With value
+    const { data: d2 } = await subscriptionCreate({
+      body: {
+        name: "Valued retry",
+        destination: {
+          destination_type: "webhook",
+          url: "https://hooks.example.com/valued-retry",
+          method: "POST",
+          retry_after: "120",
+          auth: {
+            auth_type: "basic",
+            username: "bob",
+            password: "pa$$word",
+          },
+        },
+      },
+    });
+
+    const dest2 = (d2 as Record<string, unknown>).destination as Record<
+      string,
+      unknown
+    >;
+    expect(dest2.retry_after).toBe("120");
   });
 });
