@@ -1,1 +1,2610 @@
-{"components":{"responses":{},"schemas":{"UserRequest":{"description":"The User Request","example":{"name":"himangshuj"},"properties":{"name":{"description":"The name of the user","example":"himangshuj","type":"string","x-struct":null,"x-validate":null}},"required":["name"],"title":"UserRequest","type":"object","writeOnly":true,"x-order":["name"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.UserRequest","x-validate":null},"OAuthAuthorizationCodeGrantRequest":{"allOf":[{"$ref":"#/components/schemas/AuthorizationCodeGrantRequest"},{"properties":{"grant_type":{"enum":["authorization_code"],"type":"string","x-struct":null,"x-validate":null}},"required":["grant_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"OAuthAuthorizationCodeGrantRequest","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.OAuthAuthorizationCodeGrantRequest","x-validate":null},"SubscriptionResponse":{"description":"Event subscription with a polymorphic delivery destination","example":{"destination":{"auth":{"auth_type":"oauth","client_id":"client-abc-123","grant":{"grant_type":"client_credentials","scope":"read:events write:webhooks"},"token_url":"https://auth.example.com/oauth/token"},"description":"","destination_type":"webhook","method":"POST","retry_after":"","timeout_ms":0,"url":"https://hooks.example.com/deliveries"},"id":"b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b","name":"Order events subscription"},"properties":{"destination":{"discriminator":{"mapping":{"email":"#/components/schemas/SubscriptionEmailDestinationResponse","webhook":"#/components/schemas/SubscriptionWebhookDestinationResponse"},"propertyName":"destination_type"},"oneOf":[{"$ref":"#/components/schemas/SubscriptionWebhookDestinationResponse"},{"$ref":"#/components/schemas/SubscriptionEmailDestinationResponse"}],"readOnly":true,"type":"object","x-struct":null,"x-validate":null},"id":{"example":"b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b","format":"uuid","readOnly":true,"type":"string","x-struct":null,"x-validate":null},"name":{"example":"Order events subscription","type":"string","x-struct":null,"x-validate":null}},"readOnly":true,"required":["name","destination"],"title":"SubscriptionResponse","type":"object","x-order":["id","name","destination"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.SubscriptionResponse","x-validate":null},"SubscriptionEmailDestinationRequest":{"allOf":[{"$ref":"#/components/schemas/EmailDestinationRequest"},{"properties":{"destination_type":{"enum":["email"],"type":"string","x-struct":null,"x-validate":null}},"required":["destination_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"SubscriptionEmailDestinationRequest","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.SubscriptionEmailDestinationRequest","x-validate":null},"WebhookResponse":{"description":"A webhook channel","example":{"method":"POST","url":"https://hooks.example.com/123"},"properties":{"method":{"description":"HTTP method","enum":["GET","POST","PUT","PATCH","DELETE"],"example":"POST","type":"string","x-struct":null,"x-validate":null},"url":{"description":"Webhook target URL","example":"https://hooks.example.com/123","format":"uri","type":"string","x-struct":null,"x-validate":null}},"readOnly":true,"required":["url","method"],"title":"WebhookResponse","type":"object","x-order":["url","method"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookResponse","x-validate":null},"WebhookDestinationResponse":{"description":"HTTP webhook delivery destination with a polymorphic auth mechanism","example":{"auth":{"auth_type":"oauth","client_id":"client-abc-123","grant":{"grant_type":"client_credentials","scope":"read:events write:webhooks"},"token_url":"https://auth.example.com/oauth/token"},"description":"","method":"POST","retry_after":"","timeout_ms":0,"url":"https://hooks.example.com/deliveries"},"properties":{"auth":{"discriminator":{"mapping":{"basic":"#/components/schemas/WebhookDestinationBasicAuthResponse","oauth":"#/components/schemas/WebhookDestinationOAuthResponse"},"propertyName":"auth_type"},"oneOf":[{"$ref":"#/components/schemas/WebhookDestinationOAuthResponse"},{"$ref":"#/components/schemas/WebhookDestinationBasicAuthResponse"}],"readOnly":true,"type":"object","x-struct":null,"x-validate":null},"description":{"description":"Optional webhook description","nullable":true,"type":"string","x-struct":null,"x-validate":null},"method":{"enum":["POST","PUT","PATCH"],"example":"POST","type":"string","x-struct":null,"x-validate":null},"retry_after":{"description":"Retry-After header value","nullable":true,"type":"string","x-struct":null,"x-validate":null},"timeout_ms":{"description":"Request timeout in milliseconds","type":"integer","x-struct":null,"x-validate":null},"url":{"example":"https://hooks.example.com/deliveries","format":"uri","type":"string","x-struct":null,"x-validate":null}},"readOnly":true,"required":["url","method","retry_after","auth"],"title":"WebhookDestinationResponse","type":"object","x-order":["url","method","retry_after","timeout_ms","description","auth"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookDestinationResponse","x-validate":null},"TenantRequest":{"description":"The Tenant Request","example":{"name":"organiztion","users":[{"name":"himangshuj"}]},"properties":{"name":{"description":"The name of the tenant","example":"organiztion","minLength":4,"type":"string","x-struct":null,"x-validate":null},"users":{"description":"Users belonging to the tenant","example":[{"name":"himangshuj"}],"items":{"$ref":"#/components/schemas/UserRequest"},"type":"array","writeOnly":true,"x-struct":null,"x-validate":null}},"required":["name"],"title":"TenantRequest","type":"object","writeOnly":true,"x-order":["name","users"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.TenantRequest","x-validate":null},"WebhookDestinationRequest":{"description":"HTTP webhook delivery destination with a polymorphic auth mechanism Request","example":{"auth":{"auth_type":"oauth","client_id":"client-abc-123","grant":{"client_secret":"sk-example-client-secret","grant_type":"client_credentials","scope":"read:events write:webhooks"},"token_url":"https://auth.example.com/oauth/token"},"description":"","method":"POST","retry_after":"","timeout_ms":0,"url":"https://hooks.example.com/deliveries"},"properties":{"auth":{"discriminator":{"mapping":{"basic":"#/components/schemas/WebhookDestinationBasicAuthRequest","oauth":"#/components/schemas/WebhookDestinationOAuthRequest"},"propertyName":"auth_type"},"oneOf":[{"$ref":"#/components/schemas/WebhookDestinationOAuthRequest"},{"$ref":"#/components/schemas/WebhookDestinationBasicAuthRequest"}],"type":"object","writeOnly":true,"x-struct":null,"x-validate":null},"description":{"description":"Optional webhook description","nullable":true,"type":"string","x-struct":null,"x-validate":null},"method":{"enum":["POST","PUT","PATCH"],"example":"POST","type":"string","x-struct":null,"x-validate":null},"retry_after":{"description":"Retry-After header value","nullable":true,"type":"string","x-struct":null,"x-validate":null},"timeout_ms":{"description":"Request timeout in milliseconds","type":"integer","x-struct":null,"x-validate":null},"url":{"example":"https://hooks.example.com/deliveries","format":"uri","type":"string","x-struct":null,"x-validate":null}},"required":["url","method","retry_after","auth"],"title":"WebhookDestinationRequest","type":"object","writeOnly":true,"x-order":["url","method","retry_after","timeout_ms","description","auth"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookDestinationRequest","x-validate":null},"NotificationWebhookRequest":{"allOf":[{"$ref":"#/components/schemas/WebhookRequest"},{"properties":{"channel_type":{"enum":["webhook"],"type":"string","x-struct":null,"x-validate":null}},"required":["channel_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"NotificationWebhookRequest","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationWebhookRequest","x-validate":null},"OAuthResponse":{"description":"OAuth 2.0 authentication with a polymorphic grant type","example":{"client_id":"client-abc-123","grant":{"grant_type":"client_credentials","scope":"read:events write:webhooks"},"token_url":"https://auth.example.com/oauth/token"},"properties":{"client_id":{"example":"client-abc-123","type":"string","x-struct":null,"x-validate":null},"grant":{"discriminator":{"mapping":{"authorization_code":"#/components/schemas/OAuthAuthorizationCodeGrantResponse","client_credentials":"#/components/schemas/OAuthClientCredentialsGrantResponse"},"propertyName":"grant_type"},"oneOf":[{"$ref":"#/components/schemas/OAuthClientCredentialsGrantResponse"},{"$ref":"#/components/schemas/OAuthAuthorizationCodeGrantResponse"}],"readOnly":true,"type":"object","x-struct":null,"x-validate":null},"token_url":{"example":"https://auth.example.com/oauth/token","format":"uri","type":"string","x-struct":null,"x-validate":null}},"readOnly":true,"required":["token_url","client_id","grant"],"title":"OAuthResponse","type":"object","x-order":["token_url","client_id","grant"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.OAuthResponse","x-validate":null},"BusinessResponse":{"description":"The Business","example":{"id":"851b18d7-0c88-4095-9969-cbe385926420","name":"ACME Corp","tenant_name":"ACME Corp"},"properties":{"id":{"description":"The id of the tenant","example":"851b18d7-0c88-4095-9969-cbe385926420","format":"uuid","readOnly":true,"type":"string","x-struct":null,"x-validate":null},"name":{"description":"The name of the business","example":"ACME Corp","type":"string","x-struct":null,"x-validate":null},"tenant_name":{"description":"The name of the business","example":"ACME Corp","type":"string","x-struct":null,"x-validate":null}},"readOnly":true,"required":["name"],"title":"BusinessResponse","type":"object","x-order":["id","name","tenant_name"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.BusinessResponse","x-validate":null},"NotificationEmailResponse":{"allOf":[{"$ref":"#/components/schemas/EmailResponse"},{"properties":{"channel_type":{"enum":["email"],"type":"string","x-struct":null,"x-validate":null}},"required":["channel_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"NotificationEmailResponse","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationEmailResponse","x-validate":null},"EmailResponse":{"description":"An email channel","example":{"body":"Your order has shipped","from":"store@example.com","to":"buyer@example.com"},"properties":{"body":{"description":"The email body","example":"Your order has shipped","type":"string","x-struct":null,"x-validate":null},"from":{"description":"The email sender","example":"store@example.com","format":"email","type":"string","x-struct":null,"x-validate":null},"to":{"description":"The email recipient","example":"buyer@example.com","format":"email","type":"string","x-struct":null,"x-validate":null}},"readOnly":true,"required":["to","from","body"],"title":"EmailResponse","type":"object","x-order":["to","from","body"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.EmailResponse","x-validate":null},"ClientCredentialsGrantRequest":{"description":"OAuth 2.0 client-credentials grant Request","example":{"client_secret":"sk-example-client-secret","scope":"read:events write:webhooks"},"properties":{"client_secret":{"example":"sk-example-client-secret","type":"string","writeOnly":true,"x-struct":null,"x-validate":null},"scope":{"example":"read:events write:webhooks","type":"string","x-struct":null,"x-validate":null}},"required":["client_secret"],"title":"ClientCredentialsGrantRequest","type":"object","writeOnly":true,"x-order":["client_secret","scope"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.ClientCredentialsGrantRequest","x-validate":null},"AuthorizationCodeGrantRequest":{"description":"OAuth 2.0 authorization-code grant Request","example":{"authorization_code":"ac_example_code","redirect_uri":"https://app.example.com/oauth/callback"},"properties":{"authorization_code":{"example":"ac_example_code","type":"string","writeOnly":true,"x-struct":null,"x-validate":null},"redirect_uri":{"example":"https://app.example.com/oauth/callback","format":"uri","type":"string","x-struct":null,"x-validate":null}},"required":["authorization_code","redirect_uri"],"title":"AuthorizationCodeGrantRequest","type":"object","writeOnly":true,"x-order":["authorization_code","redirect_uri"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.AuthorizationCodeGrantRequest","x-validate":null},"NotificationResponse":{"description":"An outbound notification with a polymorphic channel","example":{"channel":{"body":"Your order has shipped","channel_type":"email","from":"store@example.com","to":"buyer@example.com"},"id":"851b18d7-0c88-4095-9969-cbe385926420","subject":"Your order has shipped"},"properties":{"channel":{"discriminator":{"mapping":{"email":"#/components/schemas/NotificationEmailResponse","sms":"#/components/schemas/NotificationSmsResponse","webhook":"#/components/schemas/NotificationWebhookResponse"},"propertyName":"channel_type"},"oneOf":[{"$ref":"#/components/schemas/NotificationEmailResponse"},{"$ref":"#/components/schemas/NotificationSmsResponse"},{"$ref":"#/components/schemas/NotificationWebhookResponse"}],"readOnly":true,"type":"object","x-struct":null,"x-validate":null},"id":{"example":"851b18d7-0c88-4095-9969-cbe385926420","format":"uuid","readOnly":true,"type":"string","x-struct":null,"x-validate":null},"subject":{"example":"Your order has shipped","type":"string","x-struct":null,"x-validate":null}},"readOnly":true,"required":["subject","channel"],"title":"NotificationResponse","type":"object","x-order":["id","subject","channel"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationResponse","x-validate":null},"WebhookDestinationBasicAuthRequest":{"allOf":[{"$ref":"#/components/schemas/BasicAuthRequest"},{"properties":{"auth_type":{"enum":["basic"],"type":"string","x-struct":null,"x-validate":null}},"required":["auth_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"WebhookDestinationBasicAuthRequest","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookDestinationBasicAuthRequest","x-validate":null},"NotificationSmsRequest":{"allOf":[{"$ref":"#/components/schemas/SmsRequest"},{"properties":{"channel_type":{"enum":["sms"],"type":"string","x-struct":null,"x-validate":null}},"required":["channel_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"NotificationSmsRequest","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationSmsRequest","x-validate":null},"AuthorizationCodeGrantResponse":{"description":"OAuth 2.0 authorization-code grant","example":{"redirect_uri":"https://app.example.com/oauth/callback"},"properties":{"redirect_uri":{"example":"https://app.example.com/oauth/callback","format":"uri","type":"string","x-struct":null,"x-validate":null}},"readOnly":true,"required":["redirect_uri"],"title":"AuthorizationCodeGrantResponse","type":"object","x-order":["redirect_uri"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.AuthorizationCodeGrantResponse","x-validate":null},"WebhookDestinationOAuthRequest":{"allOf":[{"$ref":"#/components/schemas/OAuthRequest"},{"properties":{"auth_type":{"enum":["oauth"],"type":"string","x-struct":null,"x-validate":null}},"required":["auth_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"WebhookDestinationOAuthRequest","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookDestinationOAuthRequest","x-validate":null},"BasicAuthRequest":{"description":"HTTP Basic authentication Request","example":{"password":"s3cret","username":"alice"},"properties":{"password":{"example":"s3cret","type":"string","writeOnly":true,"x-struct":null,"x-validate":null},"username":{"example":"alice","type":"string","x-struct":null,"x-validate":null}},"required":["username","password"],"title":"BasicAuthRequest","type":"object","writeOnly":true,"x-order":["username","password"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.BasicAuthRequest","x-validate":null},"NotificationRequest":{"description":"An outbound notification with a polymorphic channel Request","example":{"channel":{"body":"Your order has shipped","channel_type":"email","from":"store@example.com","to":"buyer@example.com"},"subject":"Your order has shipped"},"properties":{"channel":{"discriminator":{"mapping":{"email":"#/components/schemas/NotificationEmailRequest","sms":"#/components/schemas/NotificationSmsRequest","webhook":"#/components/schemas/NotificationWebhookRequest"},"propertyName":"channel_type"},"oneOf":[{"$ref":"#/components/schemas/NotificationEmailRequest"},{"$ref":"#/components/schemas/NotificationSmsRequest"},{"$ref":"#/components/schemas/NotificationWebhookRequest"}],"type":"object","writeOnly":true,"x-struct":null,"x-validate":null},"subject":{"example":"Your order has shipped","type":"string","x-struct":null,"x-validate":null}},"required":["subject","channel"],"title":"NotificationRequest","type":"object","writeOnly":true,"x-order":["subject","channel"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationRequest","x-validate":null},"OAuthClientCredentialsGrantRequest":{"allOf":[{"$ref":"#/components/schemas/ClientCredentialsGrantRequest"},{"properties":{"grant_type":{"enum":["client_credentials"],"type":"string","x-struct":null,"x-validate":null}},"required":["grant_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"OAuthClientCredentialsGrantRequest","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.OAuthClientCredentialsGrantRequest","x-validate":null},"NotificationSmsResponse":{"allOf":[{"$ref":"#/components/schemas/SmsResponse"},{"properties":{"channel_type":{"enum":["sms"],"type":"string","x-struct":null,"x-validate":null}},"required":["channel_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"NotificationSmsResponse","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationSmsResponse","x-validate":null},"WebhookDestinationBasicAuthResponse":{"allOf":[{"$ref":"#/components/schemas/BasicAuthResponse"},{"properties":{"auth_type":{"enum":["basic"],"type":"string","x-struct":null,"x-validate":null}},"required":["auth_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"WebhookDestinationBasicAuthResponse","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookDestinationBasicAuthResponse","x-validate":null},"SubscriptionWebhookDestinationResponse":{"allOf":[{"$ref":"#/components/schemas/WebhookDestinationResponse"},{"properties":{"destination_type":{"enum":["webhook"],"type":"string","x-struct":null,"x-validate":null}},"required":["destination_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"SubscriptionWebhookDestinationResponse","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.SubscriptionWebhookDestinationResponse","x-validate":null},"SubscriptionWebhookDestinationRequest":{"allOf":[{"$ref":"#/components/schemas/WebhookDestinationRequest"},{"properties":{"destination_type":{"enum":["webhook"],"type":"string","x-struct":null,"x-validate":null}},"required":["destination_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"SubscriptionWebhookDestinationRequest","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.SubscriptionWebhookDestinationRequest","x-validate":null},"OAuthClientCredentialsGrantResponse":{"allOf":[{"$ref":"#/components/schemas/ClientCredentialsGrantResponse"},{"properties":{"grant_type":{"enum":["client_credentials"],"type":"string","x-struct":null,"x-validate":null}},"required":["grant_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"OAuthClientCredentialsGrantResponse","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.OAuthClientCredentialsGrantResponse","x-validate":null},"OAuthAuthorizationCodeGrantResponse":{"allOf":[{"$ref":"#/components/schemas/AuthorizationCodeGrantResponse"},{"properties":{"grant_type":{"enum":["authorization_code"],"type":"string","x-struct":null,"x-validate":null}},"required":["grant_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"OAuthAuthorizationCodeGrantResponse","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.OAuthAuthorizationCodeGrantResponse","x-validate":null},"BasicAuthResponse":{"description":"HTTP Basic authentication","example":{"username":"alice"},"properties":{"username":{"example":"alice","type":"string","x-struct":null,"x-validate":null}},"readOnly":true,"required":["username"],"title":"BasicAuthResponse","type":"object","x-order":["username"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.BasicAuthResponse","x-validate":null},"EmailRequest":{"description":"An email channel Request","example":{"body":"Your order has shipped","from":"store@example.com","to":"buyer@example.com"},"properties":{"body":{"description":"The email body","example":"Your order has shipped","type":"string","x-struct":null,"x-validate":null},"from":{"description":"The email sender","example":"store@example.com","format":"email","type":"string","x-struct":null,"x-validate":null},"to":{"description":"The email recipient","example":"buyer@example.com","format":"email","type":"string","x-struct":null,"x-validate":null}},"required":["to","from","body"],"title":"EmailRequest","type":"object","writeOnly":true,"x-order":["to","from","body"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.EmailRequest","x-validate":null},"SmsRequest":{"description":"An sms channel Request","example":{"body":"Your code is 1234","phone_number":"+15551234567"},"properties":{"body":{"description":"The sms body","example":"Your code is 1234","type":"string","x-struct":null,"x-validate":null},"phone_number":{"description":"Phone number in E.164 format","example":"+15551234567","type":"string","x-struct":null,"x-validate":null}},"required":["phone_number","body"],"title":"SmsRequest","type":"object","writeOnly":true,"x-order":["phone_number","body"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.SmsRequest","x-validate":null},"ClientCredentialsGrantResponse":{"description":"OAuth 2.0 client-credentials grant","example":{"scope":"read:events write:webhooks"},"properties":{"scope":{"example":"read:events write:webhooks","type":"string","x-struct":null,"x-validate":null}},"readOnly":true,"title":"ClientCredentialsGrantResponse","type":"object","x-order":["scope"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.ClientCredentialsGrantResponse","x-validate":null},"BusinessRequest":{"description":"The Business Request","example":{"name":"ACME Corp","tenant_name":"ACME Corp"},"properties":{"name":{"description":"The name of the business","example":"ACME Corp","type":"string","x-struct":null,"x-validate":null},"tenant_name":{"description":"The name of the business","example":"ACME Corp","type":"string","x-struct":null,"x-validate":null}},"required":["name"],"title":"BusinessRequest","type":"object","writeOnly":true,"x-order":["name","tenant_name"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.BusinessRequest","x-validate":null},"EmailDestinationResponse":{"description":"Email delivery destination","example":{"recipient":"ops@example.com"},"properties":{"recipient":{"example":"ops@example.com","format":"email","type":"string","x-struct":null,"x-validate":null}},"readOnly":true,"required":["recipient"],"title":"EmailDestinationResponse","type":"object","x-order":["recipient"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.EmailDestinationResponse","x-validate":null},"WebhookDestinationOAuthResponse":{"allOf":[{"$ref":"#/components/schemas/OAuthResponse"},{"properties":{"auth_type":{"enum":["oauth"],"type":"string","x-struct":null,"x-validate":null}},"required":["auth_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"WebhookDestinationOAuthResponse","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookDestinationOAuthResponse","x-validate":null},"SubscriptionEmailDestinationResponse":{"allOf":[{"$ref":"#/components/schemas/EmailDestinationResponse"},{"properties":{"destination_type":{"enum":["email"],"type":"string","x-struct":null,"x-validate":null}},"required":["destination_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"SubscriptionEmailDestinationResponse","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.SubscriptionEmailDestinationResponse","x-validate":null},"UserResponse":{"description":"The User","example":{"name":"himangshuj"},"properties":{"name":{"description":"The name of the user","example":"himangshuj","type":"string","x-struct":null,"x-validate":null}},"readOnly":true,"required":["name"],"title":"UserResponse","type":"object","x-order":["name"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.UserResponse","x-validate":null},"SubscriptionRequest":{"description":"Event subscription with a polymorphic delivery destination Request","example":{"destination":{"auth":{"auth_type":"oauth","client_id":"client-abc-123","grant":{"client_secret":"sk-example-client-secret","grant_type":"client_credentials","scope":"read:events write:webhooks"},"token_url":"https://auth.example.com/oauth/token"},"description":"","destination_type":"webhook","method":"POST","retry_after":"","timeout_ms":0,"url":"https://hooks.example.com/deliveries"},"name":"Order events subscription"},"properties":{"destination":{"discriminator":{"mapping":{"email":"#/components/schemas/SubscriptionEmailDestinationRequest","webhook":"#/components/schemas/SubscriptionWebhookDestinationRequest"},"propertyName":"destination_type"},"oneOf":[{"$ref":"#/components/schemas/SubscriptionWebhookDestinationRequest"},{"$ref":"#/components/schemas/SubscriptionEmailDestinationRequest"}],"type":"object","writeOnly":true,"x-struct":null,"x-validate":null},"name":{"example":"Order events subscription","type":"string","x-struct":null,"x-validate":null}},"required":["name","destination"],"title":"SubscriptionRequest","type":"object","writeOnly":true,"x-order":["name","destination"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.SubscriptionRequest","x-validate":null},"SmsResponse":{"description":"An sms channel","example":{"body":"Your code is 1234","phone_number":"+15551234567"},"properties":{"body":{"description":"The sms body","example":"Your code is 1234","type":"string","x-struct":null,"x-validate":null},"phone_number":{"description":"Phone number in E.164 format","example":"+15551234567","type":"string","x-struct":null,"x-validate":null}},"readOnly":true,"required":["phone_number","body"],"title":"SmsResponse","type":"object","x-order":["phone_number","body"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.SmsResponse","x-validate":null},"OAuthRequest":{"description":"OAuth 2.0 authentication with a polymorphic grant type Request","example":{"client_id":"client-abc-123","grant":{"client_secret":"sk-example-client-secret","grant_type":"client_credentials","scope":"read:events write:webhooks"},"token_url":"https://auth.example.com/oauth/token"},"properties":{"client_id":{"example":"client-abc-123","type":"string","x-struct":null,"x-validate":null},"grant":{"discriminator":{"mapping":{"authorization_code":"#/components/schemas/OAuthAuthorizationCodeGrantRequest","client_credentials":"#/components/schemas/OAuthClientCredentialsGrantRequest"},"propertyName":"grant_type"},"oneOf":[{"$ref":"#/components/schemas/OAuthClientCredentialsGrantRequest"},{"$ref":"#/components/schemas/OAuthAuthorizationCodeGrantRequest"}],"type":"object","writeOnly":true,"x-struct":null,"x-validate":null},"token_url":{"example":"https://auth.example.com/oauth/token","format":"uri","type":"string","x-struct":null,"x-validate":null}},"required":["token_url","client_id","grant"],"title":"OAuthRequest","type":"object","writeOnly":true,"x-order":["token_url","client_id","grant"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.OAuthRequest","x-validate":null},"NotificationEmailRequest":{"allOf":[{"$ref":"#/components/schemas/EmailRequest"},{"properties":{"channel_type":{"enum":["email"],"type":"string","x-struct":null,"x-validate":null}},"required":["channel_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"NotificationEmailRequest","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationEmailRequest","x-validate":null},"TenantResponse":{"description":"The Tenant","example":{"name":"organiztion","users":[{"name":"himangshuj"}]},"properties":{"name":{"description":"The name of the tenant","example":"organiztion","minLength":4,"type":"string","x-struct":null,"x-validate":null},"users":{"description":"Users belonging to the tenant","example":[{"name":"himangshuj"}],"items":{"$ref":"#/components/schemas/UserResponse"},"readOnly":true,"type":"array","x-struct":null,"x-validate":null}},"readOnly":true,"required":["name"],"title":"TenantResponse","type":"object","x-order":["name","users"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.TenantResponse","x-validate":null},"EmailDestinationRequest":{"description":"Email delivery destination Request","example":{"recipient":"ops@example.com"},"properties":{"recipient":{"example":"ops@example.com","format":"email","type":"string","x-struct":null,"x-validate":null}},"required":["recipient"],"title":"EmailDestinationRequest","type":"object","writeOnly":true,"x-order":["recipient"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.EmailDestinationRequest","x-validate":null},"NotificationWebhookResponse":{"allOf":[{"$ref":"#/components/schemas/WebhookResponse"},{"properties":{"channel_type":{"enum":["webhook"],"type":"string","x-struct":null,"x-validate":null}},"required":["channel_type"],"type":"object","x-struct":null,"x-validate":null}],"title":"NotificationWebhookResponse","type":"object","x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.NotificationWebhookResponse","x-validate":null},"WebhookRequest":{"description":"A webhook channel Request","example":{"method":"POST","url":"https://hooks.example.com/123"},"properties":{"method":{"description":"HTTP method","enum":["GET","POST","PUT","PATCH","DELETE"],"example":"POST","type":"string","x-struct":null,"x-validate":null},"url":{"description":"Webhook target URL","example":"https://hooks.example.com/123","format":"uri","type":"string","x-struct":null,"x-validate":null}},"required":["url","method"],"title":"WebhookRequest","type":"object","writeOnly":true,"x-order":["url","method"],"x-struct":"Elixir.PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookRequest","x-validate":null}},"securitySchemes":{"BearerAuth":{"scheme":"Bearer","type":"http"}}},"info":{"title":"phoenix_ecto_open_api_demo","version":"0.1.0"},"openapi":"3.0.0","paths":{"/api/businesses":{"get":{"callbacks":{},"operationId":"Business.list","parameters":[],"responses":{"200":{"content":{"application/json":{"schema":{"description":"list of tenants","items":{"$ref":"#/components/schemas/BusinessResponse"},"type":"array","x-struct":null,"x-validate":null}}},"description":"Business list response"}},"summary":"Gets the list of busineses","tags":["Business"]},"post":{"callbacks":{},"operationId":"Business.create","parameters":[],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/BusinessRequest"}}},"description":"User Creation Body","required":false},"responses":{"201":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/BusinessResponse"}}},"description":"Business response"}},"summary":"Creates an user for a business","tags":["Business"]}},"/api/businesses/{id}":{"delete":{"callbacks":{},"operationId":"Business.delete","parameters":[{"description":"Business ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"responses":{"204":{"description":"Empty Response"}},"summary":"Delete an existing business","tags":["Business"]},"get":{"callbacks":{},"operationId":"Business.show","parameters":[{"description":"Business ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/BusinessResponse"}}},"description":"business  response"}},"summary":"Fetches an user","tags":["Business"]},"patch":{"callbacks":{},"operationId":"Business.update (2)","parameters":[{"description":"Business ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/BusinessRequest"}}},"description":"Business Update Body","required":false},"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/BusinessResponse"}}},"description":"Business response"}},"summary":"Updates a Business","tags":["Business"]},"put":{"callbacks":{},"operationId":"Business.update","parameters":[{"description":"Business ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/BusinessRequest"}}},"description":"Business Update Body","required":false},"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/BusinessResponse"}}},"description":"Business response"}},"summary":"Updates a Business","tags":["Business"]}},"/api/notifications":{"get":{"callbacks":{},"operationId":"Notification.list","parameters":[],"responses":{"200":{"content":{"application/json":{"schema":{"description":"list of notifications — each channel is a oneOf variant","items":{"$ref":"#/components/schemas/NotificationResponse"},"type":"array","x-struct":null,"x-validate":null}}},"description":"Notification list response"}},"summary":"Lists notifications (with polymorphic channels)","tags":["Notification"]},"post":{"callbacks":{},"operationId":"Notification.create","parameters":[],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/NotificationRequest"}}},"description":"Notification creation body","required":false},"responses":{"201":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/NotificationResponse"}}},"description":"Notification response"}},"summary":"Creates a notification with a polymorphic channel","tags":["Notification"]}},"/api/notifications/{id}":{"delete":{"callbacks":{},"operationId":"Notification.delete","parameters":[{"description":"Notification ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"responses":{"204":{"description":"Empty Response"}},"summary":"Deletes an existing notification","tags":["Notification"]},"get":{"callbacks":{},"operationId":"Notification.show","parameters":[{"description":"Notification ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/NotificationResponse"}}},"description":"Notification response"}},"summary":"Fetches a notification","tags":["Notification"]},"patch":{"callbacks":{},"operationId":"Notification.update (2)","parameters":[{"description":"Notification ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/NotificationRequest"}}},"description":"Notification update body","required":false},"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/NotificationResponse"}}},"description":"Notification response"}},"summary":"Updates a notification","tags":["Notification"]},"put":{"callbacks":{},"operationId":"Notification.update","parameters":[{"description":"Notification ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/NotificationRequest"}}},"description":"Notification update body","required":false},"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/NotificationResponse"}}},"description":"Notification response"}},"summary":"Updates a notification","tags":["Notification"]}},"/api/subscriptions":{"get":{"callbacks":{},"operationId":"Subscription.list","parameters":[],"responses":{"200":{"content":{"application/json":{"schema":{"description":"list of subscriptions — each destination is a nested polymorphic tree","items":{"$ref":"#/components/schemas/SubscriptionResponse"},"type":"array","x-struct":null,"x-validate":null}}},"description":"Subscription list response"}},"summary":"Lists subscriptions (with nested polymorphic destinations)","tags":["Subscription"]},"post":{"callbacks":{},"operationId":"Subscription.create","parameters":[],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SubscriptionRequest"}}},"description":"Subscription creation body","required":false},"responses":{"201":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SubscriptionResponse"}}},"description":"Subscription response"}},"summary":"Creates a subscription with a nested polymorphic destination","tags":["Subscription"]}},"/api/subscriptions/{id}":{"delete":{"callbacks":{},"operationId":"Subscription.delete","parameters":[{"description":"Subscription ID","example":"b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"responses":{"204":{"description":"Empty Response"}},"summary":"Deletes an existing subscription","tags":["Subscription"]},"get":{"callbacks":{},"operationId":"Subscription.show","parameters":[{"description":"Subscription ID","example":"b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SubscriptionResponse"}}},"description":"Subscription response"}},"summary":"Fetches a subscription","tags":["Subscription"]},"patch":{"callbacks":{},"operationId":"Subscription.update (2)","parameters":[{"description":"Subscription ID","example":"b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SubscriptionRequest"}}},"description":"Subscription update body","required":false},"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SubscriptionResponse"}}},"description":"Subscription response"}},"summary":"Updates a subscription","tags":["Subscription"]},"put":{"callbacks":{},"operationId":"Subscription.update","parameters":[{"description":"Subscription ID","example":"b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SubscriptionRequest"}}},"description":"Subscription update body","required":false},"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SubscriptionResponse"}}},"description":"Subscription response"}},"summary":"Updates a subscription","tags":["Subscription"]}},"/api/tenants":{"get":{"callbacks":{},"operationId":"Tenant.list","parameters":[],"responses":{"200":{"content":{"application/json":{"schema":{"description":"list of tenants","items":{"$ref":"#/components/schemas/TenantResponse"},"type":"array","x-struct":null,"x-validate":null}}},"description":"Tenant list response"}},"summary":"Gets the list of tenants","tags":["Tenant"]},"post":{"callbacks":{},"operationId":"Tenant.create","parameters":[],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/TenantRequest"}}},"description":"Tenant Creating Body","required":false},"responses":{"201":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/TenantResponse"}}},"description":"Tenant  response"}},"summary":"Create a new tenant","tags":["Tenant"]}},"/api/tenants/{id}":{"delete":{"callbacks":{},"operationId":"Tenant.delete","parameters":[{"description":"Tenant ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"responses":{"204":{"description":"Empty Response"}},"summary":"Delete an existing tenant","tags":["Tenant"]},"get":{"callbacks":{},"operationId":"Tenant.get","parameters":[{"description":"Tenant ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/TenantResponse"}}},"description":"Tenant  response"}},"summary":"Gets the details of individual tenant","tags":["Tenant"]},"patch":{"callbacks":{},"operationId":"Tenant.update (2)","parameters":[{"description":"Tenant ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/TenantRequest"}}},"description":"Tenant Creating Body","required":false},"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/TenantResponse"}}},"description":"Tenant  response"}},"summary":"Update an existing tenant","tags":["Tenant"]},"put":{"callbacks":{},"operationId":"Tenant.update","parameters":[{"description":"Tenant ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/TenantRequest"}}},"description":"Tenant Creating Body","required":false},"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/TenantResponse"}}},"description":"Tenant  response"}},"summary":"Update an existing tenant","tags":["Tenant"]}},"/api/users":{"get":{"callbacks":{},"operationId":"User.list","parameters":[],"responses":{"200":{"content":{"application/json":{"schema":{"items":{"$ref":"#/components/schemas/UserResponse"},"type":"array","x-struct":null,"x-validate":null}}},"description":"User list response"}},"summary":"Gets the list of users","tags":["User"]},"post":{"callbacks":{},"operationId":"User.create","parameters":[],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UserRequest"}}},"description":"User Creation Body","required":false},"responses":{"201":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UserResponse"}}},"description":"User  response"}},"summary":"Creates an userr","tags":["User"]}},"/api/users/{id}":{"delete":{"callbacks":{},"operationId":"User.delete","parameters":[{"description":"User ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"responses":{"204":{"description":"Empty Response"}},"summary":"Delete an existing user","tags":["User"]},"get":{"callbacks":{},"operationId":"User.show","parameters":[{"description":"User ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UserResponse"}}},"description":"User  response"}},"summary":"Fetches an user for a customer","tags":["User"]},"patch":{"callbacks":{},"operationId":"User.update (2)","parameters":[{"description":"User ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UserRequest"}}},"description":"User Update Body","required":false},"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UserResponse"}}},"description":"User  response"}},"summary":"Updates an user for a customer","tags":["User"]},"put":{"callbacks":{},"operationId":"User.update","parameters":[{"description":"User ID","example":"851b18d7-0c88-4095-9969-cbe385926420","in":"path","name":"id","required":true,"schema":{"type":"string","x-struct":null,"x-validate":null}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UserRequest"}}},"description":"User Update Body","required":false},"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UserResponse"}}},"description":"User  response"}},"summary":"Updates an user for a customer","tags":["User"]}}},"security":[{"BearerAuth":[]}],"servers":[{"url":"http://localhost:4000","variables":{}}],"tags":[]}
+{
+  "components": {
+    "responses": {},
+    "schemas": {
+      "UserRequest": {
+        "description": "The User Request",
+        "example": {
+          "name": "himangshuj"
+        },
+        "properties": {
+          "name": {
+            "description": "The name of the user",
+            "example": "himangshuj",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "UserRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "name"
+        ]
+      },
+      "OAuthAuthorizationCodeGrantRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AuthorizationCodeGrantRequest"
+          },
+          {
+            "properties": {
+              "grant_type": {
+                "enum": [
+                  "authorization_code"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "grant_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "OAuthAuthorizationCodeGrantRequest",
+        "type": "object"
+      },
+      "SubscriptionResponse": {
+        "description": "Event subscription with a polymorphic delivery destination",
+        "example": {
+          "destination": {
+            "auth": {
+              "auth_type": "oauth",
+              "client_id": "client-abc-123",
+              "grant": {
+                "grant_type": "client_credentials",
+                "scope": "read:events write:webhooks"
+              },
+              "token_url": "https://auth.example.com/oauth/token"
+            },
+            "description": "",
+            "destination_type": "webhook",
+            "method": "POST",
+            "retry_after": "",
+            "timeout_ms": 0,
+            "url": "https://hooks.example.com/deliveries"
+          },
+          "id": "b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b",
+          "name": "Order events subscription"
+        },
+        "properties": {
+          "destination": {
+            "discriminator": {
+              "mapping": {
+                "email": "#/components/schemas/SubscriptionEmailDestinationResponse",
+                "webhook": "#/components/schemas/SubscriptionWebhookDestinationResponse"
+              },
+              "propertyName": "destination_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SubscriptionWebhookDestinationResponse"
+              },
+              {
+                "$ref": "#/components/schemas/SubscriptionEmailDestinationResponse"
+              }
+            ],
+            "readOnly": true,
+            "type": "object"
+          },
+          "id": {
+            "example": "b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b",
+            "format": "uuid",
+            "readOnly": true,
+            "type": "string"
+          },
+          "name": {
+            "example": "Order events subscription",
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "name",
+          "destination"
+        ],
+        "title": "SubscriptionResponse",
+        "type": "object",
+        "x-order": [
+          "id",
+          "name",
+          "destination"
+        ]
+      },
+      "SubscriptionEmailDestinationRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EmailDestinationRequest"
+          },
+          {
+            "properties": {
+              "destination_type": {
+                "enum": [
+                  "email"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "destination_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "SubscriptionEmailDestinationRequest",
+        "type": "object"
+      },
+      "WebhookResponse": {
+        "description": "A webhook channel",
+        "example": {
+          "method": "POST",
+          "url": "https://hooks.example.com/123"
+        },
+        "properties": {
+          "method": {
+            "description": "HTTP method",
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ],
+            "example": "POST",
+            "type": "string"
+          },
+          "url": {
+            "description": "Webhook target URL",
+            "example": "https://hooks.example.com/123",
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "url",
+          "method"
+        ],
+        "title": "WebhookResponse",
+        "type": "object",
+        "x-order": [
+          "url",
+          "method"
+        ]
+      },
+      "WebhookDestinationResponse": {
+        "description": "HTTP webhook delivery destination with a polymorphic auth mechanism",
+        "example": {
+          "auth": {
+            "auth_type": "oauth",
+            "client_id": "client-abc-123",
+            "grant": {
+              "grant_type": "client_credentials",
+              "scope": "read:events write:webhooks"
+            },
+            "token_url": "https://auth.example.com/oauth/token"
+          },
+          "description": "",
+          "method": "POST",
+          "retry_after": "",
+          "timeout_ms": 0,
+          "url": "https://hooks.example.com/deliveries"
+        },
+        "properties": {
+          "auth": {
+            "discriminator": {
+              "mapping": {
+                "basic": "#/components/schemas/WebhookDestinationBasicAuthResponse",
+                "oauth": "#/components/schemas/WebhookDestinationOAuthResponse"
+              },
+              "propertyName": "auth_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WebhookDestinationOAuthResponse"
+              },
+              {
+                "$ref": "#/components/schemas/WebhookDestinationBasicAuthResponse"
+              }
+            ],
+            "readOnly": true,
+            "type": "object"
+          },
+          "description": {
+            "description": "Optional webhook description",
+            "nullable": true,
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "POST",
+              "PUT",
+              "PATCH"
+            ],
+            "example": "POST",
+            "type": "string"
+          },
+          "retry_after": {
+            "description": "Retry-After header value",
+            "nullable": true,
+            "type": "string"
+          },
+          "timeout_ms": {
+            "description": "Request timeout in milliseconds",
+            "type": "integer"
+          },
+          "url": {
+            "example": "https://hooks.example.com/deliveries",
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "url",
+          "method",
+          "retry_after",
+          "auth"
+        ],
+        "title": "WebhookDestinationResponse",
+        "type": "object",
+        "x-order": [
+          "url",
+          "method",
+          "retry_after",
+          "timeout_ms",
+          "description",
+          "auth"
+        ]
+      },
+      "TenantRequest": {
+        "description": "The Tenant Request",
+        "example": {
+          "name": "organiztion",
+          "users": [
+            {
+              "name": "himangshuj"
+            }
+          ]
+        },
+        "properties": {
+          "name": {
+            "description": "The name of the tenant",
+            "example": "organiztion",
+            "minLength": 4,
+            "type": "string"
+          },
+          "users": {
+            "description": "Users belonging to the tenant",
+            "example": [
+              {
+                "name": "himangshuj"
+              }
+            ],
+            "items": {
+              "$ref": "#/components/schemas/UserRequest"
+            },
+            "type": "array",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "TenantRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "name",
+          "users"
+        ]
+      },
+      "WebhookDestinationRequest": {
+        "description": "HTTP webhook delivery destination with a polymorphic auth mechanism Request",
+        "example": {
+          "auth": {
+            "auth_type": "oauth",
+            "client_id": "client-abc-123",
+            "grant": {
+              "client_secret": "sk-example-client-secret",
+              "grant_type": "client_credentials",
+              "scope": "read:events write:webhooks"
+            },
+            "token_url": "https://auth.example.com/oauth/token"
+          },
+          "description": "",
+          "method": "POST",
+          "retry_after": "",
+          "timeout_ms": 0,
+          "url": "https://hooks.example.com/deliveries"
+        },
+        "properties": {
+          "auth": {
+            "discriminator": {
+              "mapping": {
+                "basic": "#/components/schemas/WebhookDestinationBasicAuthRequest",
+                "oauth": "#/components/schemas/WebhookDestinationOAuthRequest"
+              },
+              "propertyName": "auth_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WebhookDestinationOAuthRequest"
+              },
+              {
+                "$ref": "#/components/schemas/WebhookDestinationBasicAuthRequest"
+              }
+            ],
+            "type": "object",
+            "writeOnly": true
+          },
+          "description": {
+            "description": "Optional webhook description",
+            "nullable": true,
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "POST",
+              "PUT",
+              "PATCH"
+            ],
+            "example": "POST",
+            "type": "string"
+          },
+          "retry_after": {
+            "description": "Retry-After header value",
+            "nullable": true,
+            "type": "string"
+          },
+          "timeout_ms": {
+            "description": "Request timeout in milliseconds",
+            "type": "integer"
+          },
+          "url": {
+            "example": "https://hooks.example.com/deliveries",
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "method",
+          "retry_after",
+          "auth"
+        ],
+        "title": "WebhookDestinationRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "url",
+          "method",
+          "retry_after",
+          "timeout_ms",
+          "description",
+          "auth"
+        ]
+      },
+      "NotificationWebhookRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookRequest"
+          },
+          {
+            "properties": {
+              "channel_type": {
+                "enum": [
+                  "webhook"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "channel_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "NotificationWebhookRequest",
+        "type": "object"
+      },
+      "OAuthResponse": {
+        "description": "OAuth 2.0 authentication with a polymorphic grant type",
+        "example": {
+          "client_id": "client-abc-123",
+          "grant": {
+            "grant_type": "client_credentials",
+            "scope": "read:events write:webhooks"
+          },
+          "token_url": "https://auth.example.com/oauth/token"
+        },
+        "properties": {
+          "client_id": {
+            "example": "client-abc-123",
+            "type": "string"
+          },
+          "grant": {
+            "discriminator": {
+              "mapping": {
+                "authorization_code": "#/components/schemas/OAuthAuthorizationCodeGrantResponse",
+                "client_credentials": "#/components/schemas/OAuthClientCredentialsGrantResponse"
+              },
+              "propertyName": "grant_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OAuthClientCredentialsGrantResponse"
+              },
+              {
+                "$ref": "#/components/schemas/OAuthAuthorizationCodeGrantResponse"
+              }
+            ],
+            "readOnly": true,
+            "type": "object"
+          },
+          "token_url": {
+            "example": "https://auth.example.com/oauth/token",
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "token_url",
+          "client_id",
+          "grant"
+        ],
+        "title": "OAuthResponse",
+        "type": "object",
+        "x-order": [
+          "token_url",
+          "client_id",
+          "grant"
+        ]
+      },
+      "BusinessResponse": {
+        "description": "The Business",
+        "example": {
+          "id": "851b18d7-0c88-4095-9969-cbe385926420",
+          "name": "ACME Corp",
+          "tenant_name": "ACME Corp"
+        },
+        "properties": {
+          "id": {
+            "description": "The id of the tenant",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "format": "uuid",
+            "readOnly": true,
+            "type": "string"
+          },
+          "name": {
+            "description": "The name of the business",
+            "example": "ACME Corp",
+            "type": "string"
+          },
+          "tenant_name": {
+            "description": "The name of the business",
+            "example": "ACME Corp",
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "name"
+        ],
+        "title": "BusinessResponse",
+        "type": "object",
+        "x-order": [
+          "id",
+          "name",
+          "tenant_name"
+        ]
+      },
+      "NotificationEmailResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EmailResponse"
+          },
+          {
+            "properties": {
+              "channel_type": {
+                "enum": [
+                  "email"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "channel_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "NotificationEmailResponse",
+        "type": "object"
+      },
+      "EmailResponse": {
+        "description": "An email channel",
+        "example": {
+          "body": "Your order has shipped",
+          "from": "store@example.com",
+          "to": "buyer@example.com"
+        },
+        "properties": {
+          "body": {
+            "description": "The email body",
+            "example": "Your order has shipped",
+            "type": "string"
+          },
+          "from": {
+            "description": "The email sender",
+            "example": "store@example.com",
+            "format": "email",
+            "type": "string"
+          },
+          "to": {
+            "description": "The email recipient",
+            "example": "buyer@example.com",
+            "format": "email",
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "to",
+          "from",
+          "body"
+        ],
+        "title": "EmailResponse",
+        "type": "object",
+        "x-order": [
+          "to",
+          "from",
+          "body"
+        ]
+      },
+      "ClientCredentialsGrantRequest": {
+        "description": "OAuth 2.0 client-credentials grant Request",
+        "example": {
+          "client_secret": "sk-example-client-secret",
+          "scope": "read:events write:webhooks"
+        },
+        "properties": {
+          "client_secret": {
+            "example": "sk-example-client-secret",
+            "type": "string",
+            "writeOnly": true
+          },
+          "scope": {
+            "example": "read:events write:webhooks",
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_secret"
+        ],
+        "title": "ClientCredentialsGrantRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "client_secret",
+          "scope"
+        ]
+      },
+      "AuthorizationCodeGrantRequest": {
+        "description": "OAuth 2.0 authorization-code grant Request",
+        "example": {
+          "authorization_code": "ac_example_code",
+          "redirect_uri": "https://app.example.com/oauth/callback"
+        },
+        "properties": {
+          "authorization_code": {
+            "example": "ac_example_code",
+            "type": "string",
+            "writeOnly": true
+          },
+          "redirect_uri": {
+            "example": "https://app.example.com/oauth/callback",
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "authorization_code",
+          "redirect_uri"
+        ],
+        "title": "AuthorizationCodeGrantRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "authorization_code",
+          "redirect_uri"
+        ]
+      },
+      "NotificationResponse": {
+        "description": "An outbound notification with a polymorphic channel",
+        "example": {
+          "channel": {
+            "body": "Your order has shipped",
+            "channel_type": "email",
+            "from": "store@example.com",
+            "to": "buyer@example.com"
+          },
+          "id": "851b18d7-0c88-4095-9969-cbe385926420",
+          "subject": "Your order has shipped"
+        },
+        "properties": {
+          "channel": {
+            "discriminator": {
+              "mapping": {
+                "email": "#/components/schemas/NotificationEmailResponse",
+                "sms": "#/components/schemas/NotificationSmsResponse",
+                "webhook": "#/components/schemas/NotificationWebhookResponse"
+              },
+              "propertyName": "channel_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NotificationEmailResponse"
+              },
+              {
+                "$ref": "#/components/schemas/NotificationSmsResponse"
+              },
+              {
+                "$ref": "#/components/schemas/NotificationWebhookResponse"
+              }
+            ],
+            "readOnly": true,
+            "type": "object"
+          },
+          "id": {
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "format": "uuid",
+            "readOnly": true,
+            "type": "string"
+          },
+          "subject": {
+            "example": "Your order has shipped",
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "subject",
+          "channel"
+        ],
+        "title": "NotificationResponse",
+        "type": "object",
+        "x-order": [
+          "id",
+          "subject",
+          "channel"
+        ]
+      },
+      "WebhookDestinationBasicAuthRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BasicAuthRequest"
+          },
+          {
+            "properties": {
+              "auth_type": {
+                "enum": [
+                  "basic"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "auth_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "WebhookDestinationBasicAuthRequest",
+        "type": "object"
+      },
+      "NotificationSmsRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SmsRequest"
+          },
+          {
+            "properties": {
+              "channel_type": {
+                "enum": [
+                  "sms"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "channel_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "NotificationSmsRequest",
+        "type": "object"
+      },
+      "AuthorizationCodeGrantResponse": {
+        "description": "OAuth 2.0 authorization-code grant",
+        "example": {
+          "redirect_uri": "https://app.example.com/oauth/callback"
+        },
+        "properties": {
+          "redirect_uri": {
+            "example": "https://app.example.com/oauth/callback",
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "redirect_uri"
+        ],
+        "title": "AuthorizationCodeGrantResponse",
+        "type": "object",
+        "x-order": [
+          "redirect_uri"
+        ]
+      },
+      "WebhookDestinationOAuthRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OAuthRequest"
+          },
+          {
+            "properties": {
+              "auth_type": {
+                "enum": [
+                  "oauth"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "auth_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "WebhookDestinationOAuthRequest",
+        "type": "object"
+      },
+      "BasicAuthRequest": {
+        "description": "HTTP Basic authentication Request",
+        "example": {
+          "password": "s3cret",
+          "username": "alice"
+        },
+        "properties": {
+          "password": {
+            "example": "s3cret",
+            "type": "string",
+            "writeOnly": true
+          },
+          "username": {
+            "example": "alice",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "BasicAuthRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "username",
+          "password"
+        ]
+      },
+      "NotificationRequest": {
+        "description": "An outbound notification with a polymorphic channel Request",
+        "example": {
+          "channel": {
+            "body": "Your order has shipped",
+            "channel_type": "email",
+            "from": "store@example.com",
+            "to": "buyer@example.com"
+          },
+          "subject": "Your order has shipped"
+        },
+        "properties": {
+          "channel": {
+            "discriminator": {
+              "mapping": {
+                "email": "#/components/schemas/NotificationEmailRequest",
+                "sms": "#/components/schemas/NotificationSmsRequest",
+                "webhook": "#/components/schemas/NotificationWebhookRequest"
+              },
+              "propertyName": "channel_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NotificationEmailRequest"
+              },
+              {
+                "$ref": "#/components/schemas/NotificationSmsRequest"
+              },
+              {
+                "$ref": "#/components/schemas/NotificationWebhookRequest"
+              }
+            ],
+            "type": "object",
+            "writeOnly": true
+          },
+          "subject": {
+            "example": "Your order has shipped",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject",
+          "channel"
+        ],
+        "title": "NotificationRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "subject",
+          "channel"
+        ]
+      },
+      "OAuthClientCredentialsGrantRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ClientCredentialsGrantRequest"
+          },
+          {
+            "properties": {
+              "grant_type": {
+                "enum": [
+                  "client_credentials"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "grant_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "OAuthClientCredentialsGrantRequest",
+        "type": "object"
+      },
+      "NotificationSmsResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SmsResponse"
+          },
+          {
+            "properties": {
+              "channel_type": {
+                "enum": [
+                  "sms"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "channel_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "NotificationSmsResponse",
+        "type": "object"
+      },
+      "WebhookDestinationBasicAuthResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BasicAuthResponse"
+          },
+          {
+            "properties": {
+              "auth_type": {
+                "enum": [
+                  "basic"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "auth_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "WebhookDestinationBasicAuthResponse",
+        "type": "object"
+      },
+      "SubscriptionWebhookDestinationResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookDestinationResponse"
+          },
+          {
+            "properties": {
+              "destination_type": {
+                "enum": [
+                  "webhook"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "destination_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "SubscriptionWebhookDestinationResponse",
+        "type": "object"
+      },
+      "SubscriptionWebhookDestinationRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookDestinationRequest"
+          },
+          {
+            "properties": {
+              "destination_type": {
+                "enum": [
+                  "webhook"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "destination_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "SubscriptionWebhookDestinationRequest",
+        "type": "object"
+      },
+      "OAuthClientCredentialsGrantResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ClientCredentialsGrantResponse"
+          },
+          {
+            "properties": {
+              "grant_type": {
+                "enum": [
+                  "client_credentials"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "grant_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "OAuthClientCredentialsGrantResponse",
+        "type": "object"
+      },
+      "OAuthAuthorizationCodeGrantResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AuthorizationCodeGrantResponse"
+          },
+          {
+            "properties": {
+              "grant_type": {
+                "enum": [
+                  "authorization_code"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "grant_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "OAuthAuthorizationCodeGrantResponse",
+        "type": "object"
+      },
+      "BasicAuthResponse": {
+        "description": "HTTP Basic authentication",
+        "example": {
+          "username": "alice"
+        },
+        "properties": {
+          "username": {
+            "example": "alice",
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "username"
+        ],
+        "title": "BasicAuthResponse",
+        "type": "object",
+        "x-order": [
+          "username"
+        ]
+      },
+      "EmailRequest": {
+        "description": "An email channel Request",
+        "example": {
+          "body": "Your order has shipped",
+          "from": "store@example.com",
+          "to": "buyer@example.com"
+        },
+        "properties": {
+          "body": {
+            "description": "The email body",
+            "example": "Your order has shipped",
+            "type": "string"
+          },
+          "from": {
+            "description": "The email sender",
+            "example": "store@example.com",
+            "format": "email",
+            "type": "string"
+          },
+          "to": {
+            "description": "The email recipient",
+            "example": "buyer@example.com",
+            "format": "email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "to",
+          "from",
+          "body"
+        ],
+        "title": "EmailRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "to",
+          "from",
+          "body"
+        ]
+      },
+      "SmsRequest": {
+        "description": "An sms channel Request",
+        "example": {
+          "body": "Your code is 1234",
+          "phone_number": "+15551234567"
+        },
+        "properties": {
+          "body": {
+            "description": "The sms body",
+            "example": "Your code is 1234",
+            "type": "string"
+          },
+          "phone_number": {
+            "description": "Phone number in E.164 format",
+            "example": "+15551234567",
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone_number",
+          "body"
+        ],
+        "title": "SmsRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "phone_number",
+          "body"
+        ]
+      },
+      "ClientCredentialsGrantResponse": {
+        "description": "OAuth 2.0 client-credentials grant",
+        "example": {
+          "scope": "read:events write:webhooks"
+        },
+        "properties": {
+          "scope": {
+            "example": "read:events write:webhooks",
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "title": "ClientCredentialsGrantResponse",
+        "type": "object",
+        "x-order": [
+          "scope"
+        ]
+      },
+      "BusinessRequest": {
+        "description": "The Business Request",
+        "example": {
+          "name": "ACME Corp",
+          "tenant_name": "ACME Corp"
+        },
+        "properties": {
+          "name": {
+            "description": "The name of the business",
+            "example": "ACME Corp",
+            "type": "string"
+          },
+          "tenant_name": {
+            "description": "The name of the business",
+            "example": "ACME Corp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "BusinessRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "name",
+          "tenant_name"
+        ]
+      },
+      "EmailDestinationResponse": {
+        "description": "Email delivery destination",
+        "example": {
+          "recipient": "ops@example.com"
+        },
+        "properties": {
+          "recipient": {
+            "example": "ops@example.com",
+            "format": "email",
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "recipient"
+        ],
+        "title": "EmailDestinationResponse",
+        "type": "object",
+        "x-order": [
+          "recipient"
+        ]
+      },
+      "WebhookDestinationOAuthResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OAuthResponse"
+          },
+          {
+            "properties": {
+              "auth_type": {
+                "enum": [
+                  "oauth"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "auth_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "WebhookDestinationOAuthResponse",
+        "type": "object"
+      },
+      "SubscriptionEmailDestinationResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EmailDestinationResponse"
+          },
+          {
+            "properties": {
+              "destination_type": {
+                "enum": [
+                  "email"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "destination_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "SubscriptionEmailDestinationResponse",
+        "type": "object"
+      },
+      "UserResponse": {
+        "description": "The User",
+        "example": {
+          "name": "himangshuj"
+        },
+        "properties": {
+          "name": {
+            "description": "The name of the user",
+            "example": "himangshuj",
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "name"
+        ],
+        "title": "UserResponse",
+        "type": "object",
+        "x-order": [
+          "name"
+        ]
+      },
+      "SubscriptionRequest": {
+        "description": "Event subscription with a polymorphic delivery destination Request",
+        "example": {
+          "destination": {
+            "auth": {
+              "auth_type": "oauth",
+              "client_id": "client-abc-123",
+              "grant": {
+                "client_secret": "sk-example-client-secret",
+                "grant_type": "client_credentials",
+                "scope": "read:events write:webhooks"
+              },
+              "token_url": "https://auth.example.com/oauth/token"
+            },
+            "description": "",
+            "destination_type": "webhook",
+            "method": "POST",
+            "retry_after": "",
+            "timeout_ms": 0,
+            "url": "https://hooks.example.com/deliveries"
+          },
+          "name": "Order events subscription"
+        },
+        "properties": {
+          "destination": {
+            "discriminator": {
+              "mapping": {
+                "email": "#/components/schemas/SubscriptionEmailDestinationRequest",
+                "webhook": "#/components/schemas/SubscriptionWebhookDestinationRequest"
+              },
+              "propertyName": "destination_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SubscriptionWebhookDestinationRequest"
+              },
+              {
+                "$ref": "#/components/schemas/SubscriptionEmailDestinationRequest"
+              }
+            ],
+            "type": "object",
+            "writeOnly": true
+          },
+          "name": {
+            "example": "Order events subscription",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "destination"
+        ],
+        "title": "SubscriptionRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "name",
+          "destination"
+        ]
+      },
+      "SmsResponse": {
+        "description": "An sms channel",
+        "example": {
+          "body": "Your code is 1234",
+          "phone_number": "+15551234567"
+        },
+        "properties": {
+          "body": {
+            "description": "The sms body",
+            "example": "Your code is 1234",
+            "type": "string"
+          },
+          "phone_number": {
+            "description": "Phone number in E.164 format",
+            "example": "+15551234567",
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "phone_number",
+          "body"
+        ],
+        "title": "SmsResponse",
+        "type": "object",
+        "x-order": [
+          "phone_number",
+          "body"
+        ]
+      },
+      "OAuthRequest": {
+        "description": "OAuth 2.0 authentication with a polymorphic grant type Request",
+        "example": {
+          "client_id": "client-abc-123",
+          "grant": {
+            "client_secret": "sk-example-client-secret",
+            "grant_type": "client_credentials",
+            "scope": "read:events write:webhooks"
+          },
+          "token_url": "https://auth.example.com/oauth/token"
+        },
+        "properties": {
+          "client_id": {
+            "example": "client-abc-123",
+            "type": "string"
+          },
+          "grant": {
+            "discriminator": {
+              "mapping": {
+                "authorization_code": "#/components/schemas/OAuthAuthorizationCodeGrantRequest",
+                "client_credentials": "#/components/schemas/OAuthClientCredentialsGrantRequest"
+              },
+              "propertyName": "grant_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OAuthClientCredentialsGrantRequest"
+              },
+              {
+                "$ref": "#/components/schemas/OAuthAuthorizationCodeGrantRequest"
+              }
+            ],
+            "type": "object",
+            "writeOnly": true
+          },
+          "token_url": {
+            "example": "https://auth.example.com/oauth/token",
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token_url",
+          "client_id",
+          "grant"
+        ],
+        "title": "OAuthRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "token_url",
+          "client_id",
+          "grant"
+        ]
+      },
+      "NotificationEmailRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EmailRequest"
+          },
+          {
+            "properties": {
+              "channel_type": {
+                "enum": [
+                  "email"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "channel_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "NotificationEmailRequest",
+        "type": "object"
+      },
+      "TenantResponse": {
+        "description": "The Tenant",
+        "example": {
+          "name": "organiztion",
+          "users": [
+            {
+              "name": "himangshuj"
+            }
+          ]
+        },
+        "properties": {
+          "name": {
+            "description": "The name of the tenant",
+            "example": "organiztion",
+            "minLength": 4,
+            "type": "string"
+          },
+          "users": {
+            "description": "Users belonging to the tenant",
+            "example": [
+              {
+                "name": "himangshuj"
+              }
+            ],
+            "items": {
+              "$ref": "#/components/schemas/UserResponse"
+            },
+            "readOnly": true,
+            "type": "array"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "name"
+        ],
+        "title": "TenantResponse",
+        "type": "object",
+        "x-order": [
+          "name",
+          "users"
+        ]
+      },
+      "EmailDestinationRequest": {
+        "description": "Email delivery destination Request",
+        "example": {
+          "recipient": "ops@example.com"
+        },
+        "properties": {
+          "recipient": {
+            "example": "ops@example.com",
+            "format": "email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "recipient"
+        ],
+        "title": "EmailDestinationRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "recipient"
+        ]
+      },
+      "NotificationWebhookResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WebhookResponse"
+          },
+          {
+            "properties": {
+              "channel_type": {
+                "enum": [
+                  "webhook"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "channel_type"
+            ],
+            "type": "object"
+          }
+        ],
+        "title": "NotificationWebhookResponse",
+        "type": "object"
+      },
+      "WebhookRequest": {
+        "description": "A webhook channel Request",
+        "example": {
+          "method": "POST",
+          "url": "https://hooks.example.com/123"
+        },
+        "properties": {
+          "method": {
+            "description": "HTTP method",
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ],
+            "example": "POST",
+            "type": "string"
+          },
+          "url": {
+            "description": "Webhook target URL",
+            "example": "https://hooks.example.com/123",
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "method"
+        ],
+        "title": "WebhookRequest",
+        "type": "object",
+        "writeOnly": true,
+        "x-order": [
+          "url",
+          "method"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "scheme": "Bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "title": "phoenix_ecto_open_api_demo",
+    "version": "0.1.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/businesses": {
+      "get": {
+        "callbacks": {},
+        "operationId": "Business.list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "list of tenants",
+                  "items": {
+                    "$ref": "#/components/schemas/BusinessResponse"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Business list response"
+          }
+        },
+        "summary": "Gets the list of busineses",
+        "tags": [
+          "Business"
+        ]
+      },
+      "post": {
+        "callbacks": {},
+        "operationId": "Business.create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessRequest"
+              }
+            }
+          },
+          "description": "User Creation Body",
+          "required": false
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResponse"
+                }
+              }
+            },
+            "description": "Business response"
+          }
+        },
+        "summary": "Creates an user for a business",
+        "tags": [
+          "Business"
+        ]
+      }
+    },
+    "/api/businesses/{id}": {
+      "delete": {
+        "callbacks": {},
+        "operationId": "Business.delete",
+        "parameters": [
+          {
+            "description": "Business ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Empty Response"
+          }
+        },
+        "summary": "Delete an existing business",
+        "tags": [
+          "Business"
+        ]
+      },
+      "get": {
+        "callbacks": {},
+        "operationId": "Business.show",
+        "parameters": [
+          {
+            "description": "Business ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResponse"
+                }
+              }
+            },
+            "description": "business  response"
+          }
+        },
+        "summary": "Fetches an user",
+        "tags": [
+          "Business"
+        ]
+      },
+      "patch": {
+        "callbacks": {},
+        "operationId": "Business.update (2)",
+        "parameters": [
+          {
+            "description": "Business ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessRequest"
+              }
+            }
+          },
+          "description": "Business Update Body",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResponse"
+                }
+              }
+            },
+            "description": "Business response"
+          }
+        },
+        "summary": "Updates a Business",
+        "tags": [
+          "Business"
+        ]
+      },
+      "put": {
+        "callbacks": {},
+        "operationId": "Business.update",
+        "parameters": [
+          {
+            "description": "Business ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessRequest"
+              }
+            }
+          },
+          "description": "Business Update Body",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResponse"
+                }
+              }
+            },
+            "description": "Business response"
+          }
+        },
+        "summary": "Updates a Business",
+        "tags": [
+          "Business"
+        ]
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "callbacks": {},
+        "operationId": "Notification.list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "list of notifications — each channel is a oneOf variant",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationResponse"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Notification list response"
+          }
+        },
+        "summary": "Lists notifications (with polymorphic channels)",
+        "tags": [
+          "Notification"
+        ]
+      },
+      "post": {
+        "callbacks": {},
+        "operationId": "Notification.create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationRequest"
+              }
+            }
+          },
+          "description": "Notification creation body",
+          "required": false
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationResponse"
+                }
+              }
+            },
+            "description": "Notification response"
+          }
+        },
+        "summary": "Creates a notification with a polymorphic channel",
+        "tags": [
+          "Notification"
+        ]
+      }
+    },
+    "/api/notifications/{id}": {
+      "delete": {
+        "callbacks": {},
+        "operationId": "Notification.delete",
+        "parameters": [
+          {
+            "description": "Notification ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Empty Response"
+          }
+        },
+        "summary": "Deletes an existing notification",
+        "tags": [
+          "Notification"
+        ]
+      },
+      "get": {
+        "callbacks": {},
+        "operationId": "Notification.show",
+        "parameters": [
+          {
+            "description": "Notification ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationResponse"
+                }
+              }
+            },
+            "description": "Notification response"
+          }
+        },
+        "summary": "Fetches a notification",
+        "tags": [
+          "Notification"
+        ]
+      },
+      "patch": {
+        "callbacks": {},
+        "operationId": "Notification.update (2)",
+        "parameters": [
+          {
+            "description": "Notification ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationRequest"
+              }
+            }
+          },
+          "description": "Notification update body",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationResponse"
+                }
+              }
+            },
+            "description": "Notification response"
+          }
+        },
+        "summary": "Updates a notification",
+        "tags": [
+          "Notification"
+        ]
+      },
+      "put": {
+        "callbacks": {},
+        "operationId": "Notification.update",
+        "parameters": [
+          {
+            "description": "Notification ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationRequest"
+              }
+            }
+          },
+          "description": "Notification update body",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationResponse"
+                }
+              }
+            },
+            "description": "Notification response"
+          }
+        },
+        "summary": "Updates a notification",
+        "tags": [
+          "Notification"
+        ]
+      }
+    },
+    "/api/subscriptions": {
+      "get": {
+        "callbacks": {},
+        "operationId": "Subscription.list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "list of subscriptions — each destination is a nested polymorphic tree",
+                  "items": {
+                    "$ref": "#/components/schemas/SubscriptionResponse"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Subscription list response"
+          }
+        },
+        "summary": "Lists subscriptions (with nested polymorphic destinations)",
+        "tags": [
+          "Subscription"
+        ]
+      },
+      "post": {
+        "callbacks": {},
+        "operationId": "Subscription.create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionRequest"
+              }
+            }
+          },
+          "description": "Subscription creation body",
+          "required": false
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                }
+              }
+            },
+            "description": "Subscription response"
+          }
+        },
+        "summary": "Creates a subscription with a nested polymorphic destination",
+        "tags": [
+          "Subscription"
+        ]
+      }
+    },
+    "/api/subscriptions-struct": {
+      "get": {
+        "callbacks": {},
+        "operationId": "Subscription.showStruct",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                }
+              }
+            },
+            "description": "Subscription response"
+          }
+        },
+        "summary": "GH-41 — returns a hardcoded SubscriptionResponse struct directly",
+        "tags": [
+          "Subscription"
+        ]
+      }
+    },
+    "/api/subscriptions/{id}": {
+      "delete": {
+        "callbacks": {},
+        "operationId": "Subscription.delete",
+        "parameters": [
+          {
+            "description": "Subscription ID",
+            "example": "b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Empty Response"
+          }
+        },
+        "summary": "Deletes an existing subscription",
+        "tags": [
+          "Subscription"
+        ]
+      },
+      "get": {
+        "callbacks": {},
+        "operationId": "Subscription.show",
+        "parameters": [
+          {
+            "description": "Subscription ID",
+            "example": "b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                }
+              }
+            },
+            "description": "Subscription response"
+          }
+        },
+        "summary": "Fetches a subscription",
+        "tags": [
+          "Subscription"
+        ]
+      },
+      "patch": {
+        "callbacks": {},
+        "operationId": "Subscription.update (2)",
+        "parameters": [
+          {
+            "description": "Subscription ID",
+            "example": "b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionRequest"
+              }
+            }
+          },
+          "description": "Subscription update body",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                }
+              }
+            },
+            "description": "Subscription response"
+          }
+        },
+        "summary": "Updates a subscription",
+        "tags": [
+          "Subscription"
+        ]
+      },
+      "put": {
+        "callbacks": {},
+        "operationId": "Subscription.update",
+        "parameters": [
+          {
+            "description": "Subscription ID",
+            "example": "b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionRequest"
+              }
+            }
+          },
+          "description": "Subscription update body",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                }
+              }
+            },
+            "description": "Subscription response"
+          }
+        },
+        "summary": "Updates a subscription",
+        "tags": [
+          "Subscription"
+        ]
+      }
+    },
+    "/api/tenants": {
+      "get": {
+        "callbacks": {},
+        "operationId": "Tenant.list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "list of tenants",
+                  "items": {
+                    "$ref": "#/components/schemas/TenantResponse"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Tenant list response"
+          }
+        },
+        "summary": "Gets the list of tenants",
+        "tags": [
+          "Tenant"
+        ]
+      },
+      "post": {
+        "callbacks": {},
+        "operationId": "Tenant.create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantRequest"
+              }
+            }
+          },
+          "description": "Tenant Creating Body",
+          "required": false
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantResponse"
+                }
+              }
+            },
+            "description": "Tenant  response"
+          }
+        },
+        "summary": "Create a new tenant",
+        "tags": [
+          "Tenant"
+        ]
+      }
+    },
+    "/api/tenants/{id}": {
+      "delete": {
+        "callbacks": {},
+        "operationId": "Tenant.delete",
+        "parameters": [
+          {
+            "description": "Tenant ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Empty Response"
+          }
+        },
+        "summary": "Delete an existing tenant",
+        "tags": [
+          "Tenant"
+        ]
+      },
+      "get": {
+        "callbacks": {},
+        "operationId": "Tenant.get",
+        "parameters": [
+          {
+            "description": "Tenant ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantResponse"
+                }
+              }
+            },
+            "description": "Tenant  response"
+          }
+        },
+        "summary": "Gets the details of individual tenant",
+        "tags": [
+          "Tenant"
+        ]
+      },
+      "patch": {
+        "callbacks": {},
+        "operationId": "Tenant.update (2)",
+        "parameters": [
+          {
+            "description": "Tenant ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantRequest"
+              }
+            }
+          },
+          "description": "Tenant Creating Body",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantResponse"
+                }
+              }
+            },
+            "description": "Tenant  response"
+          }
+        },
+        "summary": "Update an existing tenant",
+        "tags": [
+          "Tenant"
+        ]
+      },
+      "put": {
+        "callbacks": {},
+        "operationId": "Tenant.update",
+        "parameters": [
+          {
+            "description": "Tenant ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantRequest"
+              }
+            }
+          },
+          "description": "Tenant Creating Body",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantResponse"
+                }
+              }
+            },
+            "description": "Tenant  response"
+          }
+        },
+        "summary": "Update an existing tenant",
+        "tags": [
+          "Tenant"
+        ]
+      }
+    },
+    "/api/users": {
+      "get": {
+        "callbacks": {},
+        "operationId": "User.list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserResponse"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "User list response"
+          }
+        },
+        "summary": "Gets the list of users",
+        "tags": [
+          "User"
+        ]
+      },
+      "post": {
+        "callbacks": {},
+        "operationId": "User.create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRequest"
+              }
+            }
+          },
+          "description": "User Creation Body",
+          "required": false
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            },
+            "description": "User  response"
+          }
+        },
+        "summary": "Creates an userr",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/api/users/{id}": {
+      "delete": {
+        "callbacks": {},
+        "operationId": "User.delete",
+        "parameters": [
+          {
+            "description": "User ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Empty Response"
+          }
+        },
+        "summary": "Delete an existing user",
+        "tags": [
+          "User"
+        ]
+      },
+      "get": {
+        "callbacks": {},
+        "operationId": "User.show",
+        "parameters": [
+          {
+            "description": "User ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            },
+            "description": "User  response"
+          }
+        },
+        "summary": "Fetches an user for a customer",
+        "tags": [
+          "User"
+        ]
+      },
+      "patch": {
+        "callbacks": {},
+        "operationId": "User.update (2)",
+        "parameters": [
+          {
+            "description": "User ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRequest"
+              }
+            }
+          },
+          "description": "User Update Body",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            },
+            "description": "User  response"
+          }
+        },
+        "summary": "Updates an user for a customer",
+        "tags": [
+          "User"
+        ]
+      },
+      "put": {
+        "callbacks": {},
+        "operationId": "User.update",
+        "parameters": [
+          {
+            "description": "User ID",
+            "example": "851b18d7-0c88-4095-9969-cbe385926420",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRequest"
+              }
+            }
+          },
+          "description": "User Update Body",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            },
+            "description": "User  response"
+          }
+        },
+        "summary": "Updates an user for a customer",
+        "tags": [
+          "User"
+        ]
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "servers": [
+    {
+      "url": "http://localhost:4000",
+      "variables": {}
+    }
+  ],
+  "tags": []
+}

@@ -138,4 +138,45 @@ defmodule PhoenixEctoOpenApiDemoWeb.SubscriptionController do
       send_resp(conn, :no_content, "")
     end
   end
+
+  # GH-41 — endpoint that returns a Response struct directly (no Mapper.to_map
+  # call). Jason.Encoder handles nil-stripping and encoding automatically.
+
+  alias PhoenixEctoOpenApiDemo.OpenApiSchema.SubscriptionWebhookDestinationResponse
+  alias PhoenixEctoOpenApiDemo.OpenApiSchema.WebhookDestinationOAuthResponse
+  alias PhoenixEctoOpenApiDemo.OpenApiSchema.OAuthClientCredentialsGrantResponse
+
+  operation(:show_struct,
+    summary: "GH-41 — returns a hardcoded SubscriptionResponse struct directly",
+    operation_id: "Subscription.showStruct",
+    responses: [
+      ok: {"Subscription response", "application/json", SubscriptionResponse}
+    ]
+  )
+
+  def show_struct(conn, _params) do
+    response_struct = %SubscriptionResponse{
+      id: "b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b",
+      name: "GH-41 struct endpoint",
+      destination: %SubscriptionWebhookDestinationResponse{
+        destination_type: "webhook",
+        url: "https://hooks.example.com/gh41",
+        method: "POST",
+        retry_after: nil,
+        auth: %WebhookDestinationOAuthResponse{
+          auth_type: "oauth",
+          token_url: "https://auth.example.com/oauth/token",
+          client_id: "client-gh41",
+          grant: %OAuthClientCredentialsGrantResponse{
+            grant_type: "client_credentials",
+            scope: "read:events"
+          }
+        }
+      }
+    }
+
+    conn
+    |> put_status(:ok)
+    |> render(:show_struct, subscription: response_struct)
+  end
 end
