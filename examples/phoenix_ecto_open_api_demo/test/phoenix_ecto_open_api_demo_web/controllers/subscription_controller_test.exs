@@ -56,6 +56,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.SubscriptionControllerTest do
       destination_type: "webhook",
       url: "https://hooks.example.com/infra",
       method: "POST",
+      retry_after: "120",
       auth: %{
         auth_type: "basic",
         username: "alice",
@@ -70,6 +71,9 @@ defmodule PhoenixEctoOpenApiDemoWeb.SubscriptionControllerTest do
       destination_type: "webhook",
       url: "https://hooks.example.com/orders",
       method: "POST",
+      retry_after: nil,
+      timeout_ms: 5000,
+      description: "Primary order hook",
       auth: %{
         auth_type: "oauth",
         token_url: "https://auth.example.com/oauth/token",
@@ -89,6 +93,7 @@ defmodule PhoenixEctoOpenApiDemoWeb.SubscriptionControllerTest do
       destination_type: "webhook",
       url: "https://hooks.example.com/authz",
       method: "POST",
+      retry_after: "60",
       auth: %{
         auth_type: "oauth",
         token_url: "https://auth.example.com/oauth/token",
@@ -369,6 +374,166 @@ defmodule PhoenixEctoOpenApiDemoWeb.SubscriptionControllerTest do
       assert length(by_shape[:email]) == 1
       assert length(by_shape[:basic]) == 1
       assert length(by_shape[:oauth_client_credentials]) == 1
+    end
+  end
+
+  # ------------------------------------------------------------------
+  # GH-38 — nil-stripping: required × nullable matrix
+  # ------------------------------------------------------------------
+
+  describe "GH-38 — all fields filled (non-nil values always emitted)" do
+    test "POST with all optional fields populated returns every key in the response",
+         %{conn: conn} do
+      conn = post(conn, ~p"/api/subscriptions", @client_credentials_attrs)
+      body = json_response(conn, 201)
+      dest = body["destination"]
+
+      # required non-nullable — always present
+      assert dest["url"] == "https://hooks.example.com/orders"
+      assert dest["method"] == "POST"
+
+      # required nullable — present with null value
+      assert Map.has_key?(dest, "retry_after")
+      assert is_nil(dest["retry_after"])
+
+      # optional non-nullable — present because non-nil was sent
+      assert dest["timeout_ms"] == 5000
+
+      # optional nullable — present because non-nil was sent
+      assert dest["description"] == "Primary order hook"
+
+      # nested optional non-nullable — present because non-nil was sent
+      assert dest["auth"]["grant"]["scope"] == "read:events write:webhooks"
+
+      assert {:ok, _} = cast_response(body)
+    end
+  end
+
+  describe "GH-38 — optional non-nullable fields absent when not sent" do
+    test "POST without timeout_ms and scope omits both from response",
+         %{conn: conn} do
+      attrs = %{
+        name: "Minimal webhook",
+        destination: %{
+          destination_type: "webhook",
+          url: "https://hooks.example.com/minimal",
+          method: "POST",
+          retry_after: "30",
+          auth: %{
+            auth_type: "oauth",
+            token_url: "https://auth.example.com/oauth/token",
+            client_id: "client-minimal",
+            grant: %{
+              grant_type: "client_credentials",
+              client_secret: "sk-minimal-secret"
+            }
+          }
+        }
+      }
+
+      conn = post(conn, ~p"/api/subscriptions", attrs)
+      body = json_response(conn, 201)
+      dest = body["destination"]
+
+      # optional non-nullable not sent → key absent
+      refute Map.has_key?(dest, "timeout_ms")
+
+      # nested optional non-nullable (scope) not sent → key absent
+      refute Map.has_key?(dest["auth"]["grant"], "scope")
+
+      # required fields still present
+      assert dest["url"] == "https://hooks.example.com/minimal"
+      assert dest["retry_after"] == "30"
+
+      assert {:ok, _} = cast_response(body)
+    end
+  end
+
+  describe "GH-38 — optional nullable field absent vs explicitly null" do
+    test "POST without description still emits key as null (nullable field — nil is always meaningful)",
+         %{conn: conn} do
+      attrs = %{
+        name: "No description",
+        destination: %{
+          destination_type: "webhook",
+          url: "https://hooks.example.com/no-desc",
+          method: "POST",
+          retry_after: nil,
+          auth: %{
+            auth_type: "basic",
+            username: "alice",
+            password: "s3cret"
+          }
+        }
+      }
+
+      conn = post(conn, ~p"/api/subscriptions", attrs)
+      body = json_response(conn, 201)
+      dest = body["destination"]
+
+      # optional nullable not sent → Mapper can't distinguish from explicit null,
+      # so nullable fields always emit nil. This is correct: nullable means null
+      # is a valid wire value.
+      assert Map.has_key?(dest, "description")
+      assert is_nil(dest["description"])
+
+      assert {:ok, _} = cast_response(body)
+    end
+
+    test "POST with description: null emits key with null value",
+         %{conn: conn} do
+      attrs = %{
+        name: "Explicit null description",
+        destination: %{
+          destination_type: "webhook",
+          url: "https://hooks.example.com/null-desc",
+          method: "POST",
+          retry_after: nil,
+          description: nil,
+          auth: %{
+            auth_type: "basic",
+            username: "bob",
+            password: "pa$$word"
+          }
+        }
+      }
+
+      conn = post(conn, ~p"/api/subscriptions", attrs)
+      body = json_response(conn, 201)
+      dest = body["destination"]
+
+      # optional nullable explicitly sent as null → key present with null
+      assert Map.has_key?(dest, "description")
+      assert is_nil(dest["description"])
+
+      assert {:ok, _} = cast_response(body)
+    end
+  end
+
+  describe "GH-38 — required nullable field with null vs non-null" do
+    test "POST with retry_after: null emits key with null value",
+         %{conn: conn} do
+      conn = post(conn, ~p"/api/subscriptions", @client_credentials_attrs)
+      body = json_response(conn, 201)
+      dest = body["destination"]
+
+      # required nullable with nil → key present, value null
+      assert Map.has_key?(dest, "retry_after")
+      assert is_nil(dest["retry_after"])
+
+      assert {:ok, _} = cast_response(body)
+    end
+
+    test "POST with retry_after: '120' emits key with string value",
+         %{conn: conn} do
+      conn = post(conn, ~p"/api/subscriptions", @basic_auth_attrs)
+      body = json_response(conn, 201)
+      dest = body["destination"]
+
+      # required nullable with value → key present, value set
+      assert dest["retry_after"] == "120"
+
+      assert {:ok, _} = cast_response(body)
     end
   end
 end

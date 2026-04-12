@@ -1,6 +1,7 @@
 # Compile support files before running tests
 Code.require_file("support/test_schema.ex", __DIR__)
 Code.require_file("support/nullable_schema_test.ex", __DIR__)
+Code.require_file("support/nil_stripping_schema.ex", __DIR__)
 
 defmodule ExOpenApiUtilsTest.CompiledFixtures do
   @moduledoc false
