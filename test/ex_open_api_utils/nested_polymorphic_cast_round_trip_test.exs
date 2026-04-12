@@ -381,6 +381,7 @@ defmodule ExOpenApiUtils.NestedPolymorphicCastRoundTripTest do
           "destination_type" => "webhook",
           "url" => "https://hooks.example.com/deliveries",
           "method" => "POST",
+          "retry_after" => nil,
           "auth" => %{
             "auth_type" => "oauth",
             "token_url" => "https://auth.example.com/oauth/token",

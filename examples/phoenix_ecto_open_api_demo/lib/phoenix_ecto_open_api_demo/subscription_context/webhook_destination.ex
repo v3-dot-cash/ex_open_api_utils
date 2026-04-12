@@ -31,6 +31,34 @@ defmodule PhoenixEctoOpenApiDemo.SubscriptionContext.WebhookDestination do
     }
   )
 
+  # GH-38 — full required × nullable matrix for nil-stripping coverage.
+  #
+  # ┌──────────┬────────────────────────────┬────────────────────────────┐
+  # │          │ nullable: false (default)   │ nullable: true             │
+  # ├──────────┼────────────────────────────┼────────────────────────────┤
+  # │ required │ :url, :method (above)       │ :retry_after               │
+  # ├──────────┼────────────────────────────┼────────────────────────────┤
+  # │ optional │ :timeout_ms                │ :description               │
+  # └──────────┴────────────────────────────┴────────────────────────────┘
+
+  # required, nullable — must be present in payload, can be null
+  open_api_property(
+    key: :retry_after,
+    schema: %Schema{type: :string, nullable: true, description: "Retry-After header value"}
+  )
+
+  # optional, non-nullable — nil → omit key (the GH-38 fix case)
+  open_api_property(
+    key: :timeout_ms,
+    schema: %Schema{type: :integer, description: "Request timeout in milliseconds"}
+  )
+
+  # optional, nullable — nil → emit key with null
+  open_api_property(
+    key: :description,
+    schema: %Schema{type: :string, nullable: true, description: "Optional webhook description"}
+  )
+
   open_api_polymorphic_property(
     key: :auth,
     type_field_name: :__type__,
@@ -42,8 +70,11 @@ defmodule PhoenixEctoOpenApiDemo.SubscriptionContext.WebhookDestination do
   )
 
   embedded_schema do
-    field :url, :string
-    field :method, :string
+    field(:url, :string)
+    field(:method, :string)
+    field(:retry_after, :string)
+    field(:timeout_ms, :integer)
+    field(:description, :string)
 
     polymorphic_embeds_one(:auth,
       types: [
@@ -59,13 +90,13 @@ defmodule PhoenixEctoOpenApiDemo.SubscriptionContext.WebhookDestination do
   open_api_schema(
     title: "WebhookDestination",
     description: "HTTP webhook delivery destination with a polymorphic auth mechanism",
-    required: [:url, :method, :auth],
-    properties: [:url, :method, :auth]
+    required: [:url, :method, :retry_after, :auth],
+    properties: [:url, :method, :retry_after, :timeout_ms, :description, :auth]
   )
 
   def changeset(schema, attrs) do
     schema
-    |> cast(attrs, [:url, :method])
+    |> cast(attrs, [:url, :method, :retry_after, :timeout_ms, :description])
     |> validate_required([:url, :method])
     |> cast_polymorphic_embed(:auth, required: true)
   end
