@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.15.0...v0.16.0) (2026-04-12)
+
+
+### Features
+
+* **mapper:** strip nil values for non-nullable properties in to_map/1 ([a1bdafb](https://github.com/v3-dot-cash/ex_open_api_utils/commit/a1bdafb2851a6febc5c3e240db1dbb3bb51302ec)), closes [#38](https://github.com/v3-dot-cash/ex_open_api_utils/issues/38)
+
 ## [0.15.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.14.0...v0.15.0) (2026-04-11)
 
 
