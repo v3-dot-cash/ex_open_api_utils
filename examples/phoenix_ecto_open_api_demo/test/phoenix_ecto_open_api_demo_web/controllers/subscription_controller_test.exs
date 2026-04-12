@@ -536,4 +536,52 @@ defmodule PhoenixEctoOpenApiDemoWeb.SubscriptionControllerTest do
       assert {:ok, _} = cast_response(body)
     end
   end
+
+  # ------------------------------------------------------------------
+  # GH-41 — Jason.Encoder: Response struct rendered directly (no Mapper.to_map)
+  # ------------------------------------------------------------------
+
+  describe "GH-41 — Response struct via Jason.Encoder (no Mapper.to_map)" do
+    test "GET /subscriptions-struct returns correct JSON from a hardcoded Response struct",
+         %{conn: conn} do
+      conn = get(conn, ~p"/api/subscriptions-struct")
+      body = json_response(conn, 200)
+
+      assert body["id"] == "b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b"
+      assert body["name"] == "GH-41 struct endpoint"
+
+      dest = body["destination"]
+      assert dest["destination_type"] == "webhook"
+      assert dest["url"] == "https://hooks.example.com/gh41"
+      assert dest["method"] == "POST"
+
+      # required nullable nil — key present, value null
+      assert Map.has_key?(dest, "retry_after")
+      assert is_nil(dest["retry_after"])
+
+      # optional non-nullable nil — key absent (nil-stripping)
+      refute Map.has_key?(dest, "timeout_ms")
+
+      # optional nullable nil — key present, value null
+      assert Map.has_key?(dest, "description")
+      assert is_nil(dest["description"])
+
+      auth = dest["auth"]
+      assert auth["auth_type"] == "oauth"
+      assert auth["token_url"] == "https://auth.example.com/oauth/token"
+      assert auth["client_id"] == "client-gh41"
+
+      grant = auth["grant"]
+      assert grant["grant_type"] == "client_credentials"
+      assert grant["scope"] == "read:events"
+    end
+
+    test "GET /subscriptions-struct response passes OpenApiSpex cast_value validation",
+         %{conn: conn} do
+      conn = get(conn, ~p"/api/subscriptions-struct")
+      body = json_response(conn, 200)
+
+      assert {:ok, _} = cast_response(body)
+    end
+  end
 end
