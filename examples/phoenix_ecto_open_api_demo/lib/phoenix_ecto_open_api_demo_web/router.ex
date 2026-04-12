@@ -25,7 +25,6 @@ defmodule PhoenixEctoOpenApiDemoWeb.Router do
     resources "/businesses", BusinessController, except: [:new, :edit]
     resources "/notifications", NotificationController, except: [:new, :edit]
     resources "/subscriptions", SubscriptionController, except: [:new, :edit]
-    get "/subscriptions-struct", SubscriptionController, :show_struct
   end
 
   # Enable Swoosh mailbox preview in development
