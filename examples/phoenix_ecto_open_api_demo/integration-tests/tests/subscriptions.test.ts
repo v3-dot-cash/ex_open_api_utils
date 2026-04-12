@@ -3,7 +3,6 @@ import { describe, expect, test } from "vitest";
 import {
   subscriptionCreate,
   subscriptionShow,
-  subscriptionShowStruct,
 } from "../generated/sdk.gen";
 import * as zSchemas from "../generated/zod.gen";
 
@@ -448,60 +447,5 @@ describe("GH-38 — required nullable field with null vs non-null", () => {
       unknown
     >;
     expect(dest2.retry_after).toBe("120");
-  });
-});
-
-/**
- * GH-41 — Jason.Encoder renders Response struct directly (no Mapper.to_map).
- *
- * The /subscriptions-struct endpoint returns a hardcoded SubscriptionResponse
- * struct. Jason.Encoder handles nil-stripping and encoding automatically.
- */
-
-describe("GH-41 — GET /api/subscriptions-struct returns correct JSON via Jason.Encoder", () => {
-  test("Response struct rendered with discriminators and nil-stripping", async () => {
-    const { data, error, response } = await subscriptionShowStruct();
-
-    expect(error).toBeUndefined();
-    expect(response.status).toBe(200);
-    expect(data).toBeDefined();
-
-    expect(data!.id).toBe("b7f4c2a0-1e3d-4a7e-9c6b-8f2d1e5c3a9b");
-    expect(data!.name).toBe("GH-41 struct endpoint");
-    expect(data!.destination.destination_type).toBe("webhook");
-
-    if (data!.destination.destination_type === "webhook") {
-      expect(data!.destination.url).toBe("https://hooks.example.com/gh41");
-      expect(data!.destination.method).toBe("POST");
-
-      // required nullable nil — present
-      expect(data!.destination.retry_after).toBeNull();
-
-      // optional non-nullable nil — absent
-      const destRaw = data!.destination as Record<string, unknown>;
-      expect(destRaw).not.toHaveProperty("timeout_ms");
-
-      // optional nullable nil — present
-      expect(destRaw).toHaveProperty("description");
-      expect(destRaw.description).toBeNull();
-
-      expect(data!.destination.auth.auth_type).toBe("oauth");
-
-      if (data!.destination.auth.auth_type === "oauth") {
-        expect(data!.destination.auth.token_url).toBe(
-          "https://auth.example.com/oauth/token",
-        );
-        expect(data!.destination.auth.client_id).toBe("client-gh41");
-        expect(data!.destination.auth.grant.grant_type).toBe(
-          "client_credentials",
-        );
-
-        if (
-          data!.destination.auth.grant.grant_type === "client_credentials"
-        ) {
-          expect(data!.destination.auth.grant.scope).toBe("read:events");
-        }
-      }
-    }
   });
 });

@@ -462,8 +462,7 @@ defmodule ExOpenApiUtils do
           request_module_name,
           quote do
             require OpenApiSpex
-            OpenApiSpex.schema(unquote(Macro.escape(request_body)), derive?: false)
-            unquote(ExOpenApiUtils.JasonEncoder.build_ast(request_properties))
+            OpenApiSpex.schema(unquote(Macro.escape(request_body)))
           end,
           Macro.Env.location(__ENV__)
         )
@@ -486,8 +485,7 @@ defmodule ExOpenApiUtils do
           response_module_name,
           quote do
             require OpenApiSpex
-            OpenApiSpex.schema(unquote(Macro.escape(response_body)), derive?: false)
-            unquote(ExOpenApiUtils.JasonEncoder.build_ast(response_properties))
+            OpenApiSpex.schema(unquote(Macro.escape(response_body)))
           end,
           Macro.Env.location(__ENV__)
         )
@@ -908,26 +906,18 @@ defmodule ExOpenApiUtils do
     for decl <- polymorphic_decls,
         entry = Map.fetch!(polymorphic_variants, decl.key),
         variant <- entry.variant_entries do
-      discriminator_prop = %ExOpenApiUtils.Property{
-        key: entry.discriminator_atom,
-        source: entry.discriminator_atom,
-        schema: %OpenApiSpex.Schema{type: :string, enum: [variant.wire]}
-      }
-
       create_parent_contextual_sibling!(
         variant.original_request_submodule,
         variant.parent_contextual_request_submodule,
         entry.discriminator_atom,
-        variant.wire,
-        variant.request_property_attrs ++ [discriminator_prop]
+        variant.wire
       )
 
       create_parent_contextual_sibling!(
         variant.original_response_submodule,
         variant.parent_contextual_response_submodule,
         entry.discriminator_atom,
-        variant.wire,
-        variant.response_property_attrs ++ [discriminator_prop]
+        variant.wire
       )
     end
 
@@ -945,8 +935,7 @@ defmodule ExOpenApiUtils do
          original_submodule,
          new_sibling,
          discriminator_atom,
-         wire_value,
-         property_attrs
+         wire_value
        ) do
     body = %{
       type: :object,
@@ -966,8 +955,7 @@ defmodule ExOpenApiUtils do
       new_sibling,
       quote do
         require OpenApiSpex
-        OpenApiSpex.schema(unquote(Macro.escape(body)), derive?: false)
-        unquote(ExOpenApiUtils.JasonEncoder.build_ast(property_attrs))
+        OpenApiSpex.schema(unquote(Macro.escape(body)))
       end,
       Macro.Env.location(__ENV__)
     )
