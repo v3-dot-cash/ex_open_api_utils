@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.16.0...v0.17.0) (2026-04-12)
+
+
+### Features
+
+* **encoder:** auto Jason.Encoder for generated schemas via nil-aware reduce ([28957aa](https://github.com/v3-dot-cash/ex_open_api_utils/commit/28957aa4288a4a1296028084db59960ec7e1d4eb)), closes [#41](https://github.com/v3-dot-cash/ex_open_api_utils/issues/41)
+
 ## [0.16.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.15.0...v0.16.0) (2026-04-12)
 
 
