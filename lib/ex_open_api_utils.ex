@@ -383,53 +383,42 @@ defmodule ExOpenApiUtils do
       # Access behaviour. The property_attrs list is the variant's
       # reflected attrs plus an inline discriminator %Property{} so the
       # sibling's Mapper emits the discriminator as a real wire field.
-      for decl <- @open_api_polymorphic_properties do
-        entry = Map.fetch!(polymorphic_variants, decl.key)
-
-        for variant <- entry.variant_entries do
-          # Two distinct discriminator stamps happen on the sibling's Mapper
-          # result map, both derived from the same entry + variant inputs:
-          #
-          #   1. WIRE discriminator (e.g. `:destination_type => "webhook"`) —
-          #      `discriminator_prop` is appended to `property_attrs` below so
-          #      the sibling's walker emits it like any other property.
-          #
-          #   2. ECTO type-field discriminator (e.g. `:__type__ => "webhook"`)
-          #      — `self_stamp_atom` / `self_stamp_wire` below are read by
-          #      `Any.__deriving__/3` (GH-34) and spliced as a final
-          #      `Map.put(result, atom, wire)` at the tail of the generated
-          #      walker body, so nested polymorphic cases get their Ecto
-          #      atom at every level without relying on the outer walker's
-          #      `polymorphic_variants` knowing about nested keys.
-          discriminator_prop = %ExOpenApiUtils.Property{
-            key: entry.discriminator_atom,
-            source: entry.discriminator_atom,
-            schema: %OpenApiSpex.Schema{type: :string, enum: [variant.wire]}
-          }
-
-          request_attrs = variant.request_property_attrs ++ [discriminator_prop]
-          response_attrs = variant.response_property_attrs ++ [discriminator_prop]
-
-          Protocol.derive(
-            ExOpenApiUtils.Mapper,
-            variant.parent_contextual_request_submodule,
-            property_attrs: request_attrs,
-            map_direction: :from_open_api,
-            polymorphic_variants: polymorphic_variants,
-            self_stamp_atom: entry.type_field_atom,
-            self_stamp_wire: variant.wire
-          )
-
-          Protocol.derive(
-            ExOpenApiUtils.Mapper,
-            variant.parent_contextual_response_submodule,
-            property_attrs: response_attrs,
-            map_direction: :from_open_api,
-            polymorphic_variants: polymorphic_variants,
-            self_stamp_atom: entry.type_field_atom,
-            self_stamp_wire: variant.wire
-          )
-        end
+      # Two distinct discriminator stamps happen on each sibling's Mapper
+      # result map, both derived from the same entry + variant inputs:
+      #
+      #   1. WIRE discriminator (e.g. `:destination_type => "webhook"`) —
+      #      `discriminator_prop` is appended to `property_attrs` so
+      #      the sibling's walker emits it like any other property.
+      #
+      #   2. ECTO type-field discriminator (e.g. `:__type__ => "webhook"`)
+      #      — `self_stamp_atom` / `self_stamp_wire` are read by
+      #      `Any.__deriving__/3` (GH-34) and spliced as a final
+      #      `Map.put(result, atom, wire)` at the tail of the generated
+      #      walker body, so nested polymorphic cases get their Ecto
+      #      atom at every level without relying on the outer walker's
+      #      `polymorphic_variants` knowing about nested keys.
+      #
+      # GH-47: when a parent declares two `open_api_polymorphic_property`s
+      # with the same variant pool (e.g. two cloud-storage embeds both
+      # backed by [aws: AWS, r2: R2, custom: Custom]), the same target
+      # sibling module would be derived twice and emit a "redefining
+      # module" warning. `__build_dedup_derive_specs__/3` collapses
+      # those duplicates and raises on genuine conflicts.
+      for spec <-
+            ExOpenApiUtils.__build_dedup_derive_specs__(
+              unquote(module),
+              @open_api_polymorphic_properties,
+              polymorphic_variants
+            ) do
+        Protocol.derive(
+          ExOpenApiUtils.Mapper,
+          spec.target_module,
+          property_attrs: spec.property_attrs,
+          map_direction: :from_open_api,
+          polymorphic_variants: polymorphic_variants,
+          self_stamp_atom: spec.self_stamp_atom,
+          self_stamp_wire: spec.self_stamp_wire
+        )
       end
 
       # Synthesize the two directional %Property{} entries per polymorphic
@@ -905,31 +894,22 @@ defmodule ExOpenApiUtils do
       )
       when is_atom(parent_module) and is_list(polymorphic_decls) and
              is_map(polymorphic_variants) and map_size(polymorphic_variants) > 0 do
-    for decl <- polymorphic_decls,
-        entry = Map.fetch!(polymorphic_variants, decl.key),
-        variant <- entry.variant_entries do
-      discriminator_prop = %ExOpenApiUtils.Property{
-        key: entry.discriminator_atom,
-        source: entry.discriminator_atom,
-        schema: %OpenApiSpex.Schema{type: :string, enum: [variant.wire]}
-      }
-
+    # GH-47: dedupe by target module so two decls that share a variant pool
+    # don't call `Module.create/3` twice on the same sibling and emit a
+    # "redefining module" warning. Specs that target the same module but
+    # disagree on body raise a CompileError instead of silently winning.
+    parent_module
+    |> build_sibling_specs(polymorphic_decls, polymorphic_variants)
+    |> dedup_sibling_specs!(parent_module)
+    |> Enum.each(fn spec ->
       create_parent_contextual_sibling!(
-        variant.original_request_submodule,
-        variant.parent_contextual_request_submodule,
-        entry.discriminator_atom,
-        variant.wire,
-        variant.request_property_attrs ++ [discriminator_prop]
+        spec.original_submodule,
+        spec.target_module,
+        spec.discriminator_atom,
+        spec.wire,
+        spec.property_attrs
       )
-
-      create_parent_contextual_sibling!(
-        variant.original_response_submodule,
-        variant.parent_contextual_response_submodule,
-        entry.discriminator_atom,
-        variant.wire,
-        variant.response_property_attrs ++ [discriminator_prop]
-      )
-    end
+    end)
 
     :ok
   end
@@ -940,6 +920,84 @@ defmodule ExOpenApiUtils do
         _polymorphic_variants
       ),
       do: :ok
+
+  defp build_sibling_specs(_parent_module, polymorphic_decls, polymorphic_variants) do
+    for decl <- polymorphic_decls,
+        entry = Map.fetch!(polymorphic_variants, decl.key),
+        variant <- entry.variant_entries,
+        {target_module, original_submodule, base_attrs} <- [
+          {variant.parent_contextual_request_submodule, variant.original_request_submodule,
+           variant.request_property_attrs},
+          {variant.parent_contextual_response_submodule, variant.original_response_submodule,
+           variant.response_property_attrs}
+        ] do
+      discriminator_prop = %ExOpenApiUtils.Property{
+        key: entry.discriminator_atom,
+        source: entry.discriminator_atom,
+        schema: %OpenApiSpex.Schema{type: :string, enum: [variant.wire]}
+      }
+
+      %{
+        decl_key: decl.key,
+        target_module: target_module,
+        original_submodule: original_submodule,
+        discriminator_atom: entry.discriminator_atom,
+        wire: variant.wire,
+        property_attrs: base_attrs ++ [discriminator_prop]
+      }
+    end
+  end
+
+  defp dedup_sibling_specs!(specs, parent_module) do
+    specs
+    |> Enum.group_by(& &1.target_module)
+    |> Enum.map(fn {target_module, group} ->
+      [first | rest] = group
+      first_body = Map.delete(first, :decl_key)
+
+      Enum.each(rest, fn other ->
+        if Map.delete(other, :decl_key) != first_body do
+          raise CompileError,
+            description:
+              "open_api_polymorphic_property declarations #{inspect(first.decl_key)} and " <>
+                "#{inspect(other.decl_key)} on #{inspect(parent_module)} both derive " <>
+                "parent-contextual sibling #{inspect(target_module)} but disagree on " <>
+                "discriminator atom, wire value, or property attrs. Either use distinct " <>
+                "variant pools or align the type_field_name/open_api_discriminator_property " <>
+                "across the two declarations."
+        end
+      end)
+
+      first
+    end)
+  end
+
+  @doc false
+  # GH-47 partner of `__generate_parent_contextual_variants__/3` for the
+  # Mapper Protocol.derive pass: builds the deduped list of derive specs
+  # called from the parent's `__before_compile__` quote. Same dedup
+  # contract — collapse identical (target_module, body) tuples, raise
+  # on collisions whose bodies disagree.
+  def __build_dedup_derive_specs__(parent_module, polymorphic_decls, polymorphic_variants)
+      when is_atom(parent_module) and is_list(polymorphic_decls) and
+             is_map(polymorphic_variants) do
+    parent_module
+    |> build_sibling_specs(polymorphic_decls, polymorphic_variants)
+    |> dedup_sibling_specs!(parent_module)
+    |> Enum.map(fn spec ->
+      entry = Map.fetch!(polymorphic_variants, spec.decl_key)
+
+      %{
+        target_module: spec.target_module,
+        property_attrs: spec.property_attrs,
+        self_stamp_atom: entry.type_field_atom,
+        self_stamp_wire: spec.wire
+      }
+    end)
+  end
+
+  def __build_dedup_derive_specs__(_parent_module, _polymorphic_decls, _polymorphic_variants),
+    do: []
 
   defp create_parent_contextual_sibling!(
          original_submodule,

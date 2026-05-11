@@ -50,6 +50,13 @@ ExOpenApiUtilsTest.CompiledFixtures.stash(
 
 ExOpenApiUtilsTest.CompiledFixtures.stash("test/support/polymorphic_discriminator/analytics.ex")
 
+# GH-47 — two `open_api_polymorphic_property` decls on one parent sharing the
+# same variant pool. Pre-fix this emitted a "redefining module" warning when
+# the two decls' parent-contextual siblings collided.
+ExOpenApiUtilsTest.CompiledFixtures.stash(
+  "test/support/polymorphic_discriminator/dual_channel_notification.ex"
+)
+
 # GH-34 — nested polymorphic fixtures. Webhook-subscription + auth tree that
 # stacks three `open_api_polymorphic_property` macros: Subscription.destination
 # → WebhookDestination.auth → OAuthAuth.grant. Variants must load before their
