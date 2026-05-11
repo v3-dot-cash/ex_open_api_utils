@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.1](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.17.0...v0.17.1) (2026-05-11)
+
+
+### Bug Fixes
+
+* **polymorphic:** dedupe parent-contextual siblings across embeds sharing a variant set ([8a5dc4e](https://github.com/v3-dot-cash/ex_open_api_utils/commit/8a5dc4e22af117120e0c5525073f6a237c5c04fd)), closes [#47](https://github.com/v3-dot-cash/ex_open_api_utils/issues/47)
+* **polymorphic:** dedupe parent-contextual siblings across embeds sharing a variant set ([#47](https://github.com/v3-dot-cash/ex_open_api_utils/issues/47)) ([88cb61b](https://github.com/v3-dot-cash/ex_open_api_utils/commit/88cb61b9defb9ff8ffb23144a46f24dc00ab46c9))
+
 ## [0.17.0](https://github.com/v3-dot-cash/ex_open_api_utils/compare/v0.16.0...v0.17.0) (2026-04-12)
 
 
